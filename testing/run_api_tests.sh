@@ -19,6 +19,8 @@ done
 script_path=$(realpath "${BASH_SOURCE[0]}")
 script_dir=$(dirname "$script_path")
 
+export TZ=${TZ:-Europe/Berlin}
+
 echo "Compiling."
 (cd "$script_dir/.." || exit 1; CGO_ENABLED=0 go build)
 
