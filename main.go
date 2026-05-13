@@ -22,7 +22,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
-	_ "gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
@@ -34,7 +33,6 @@ import (
 	"github.com/muety/wakapi/routes/api"
 	shieldsV1Routes "github.com/muety/wakapi/routes/compat/shields/v1"
 	wtV1Routes "github.com/muety/wakapi/routes/compat/wakatime/v1"
-	"github.com/muety/wakapi/routes/relay"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/services/mail"
 	"github.com/muety/wakapi/static/docs"
@@ -255,9 +253,6 @@ func main() {
 	leaderboardHandler := condition.Ternary[bool, routes.Handler](config.App.LeaderboardEnabled, routes.NewLeaderboardHandler(userService, leaderboardService), routes.NewNoopHandler())
 	miscHandler := routes.NewMiscHandler(userService)
 
-	// Other Handlers
-	relayHandler := relay.NewRelayHandler()
-
 	// Setup Routing
 	router := chi.NewRouter()
 	router.Use(
@@ -298,7 +293,6 @@ func main() {
 	projectsHandler.RegisterRoutes(rootRouter)
 	settingsHandler.RegisterRoutes(rootRouter)
 	subscriptionHandler.RegisterRoutes(rootRouter)
-	relayHandler.RegisterRoutes(rootRouter)
 	miscHandler.RegisterRoutes(rootRouter)
 
 	// API route registrations
