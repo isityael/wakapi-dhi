@@ -37,7 +37,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
 	github.com/stripe/stripe-go/v76 v76.25.0
-	github.com/swaggo/http-swagger v1.3.4
+	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.51.0
@@ -65,6 +65,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
+	github.com/swaggo/files/v2 v2.0.0 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
@@ -103,10 +104,8 @@ require (
 	github.com/samber/slog-multi v1.8.0
 	github.com/samber/slog-sentry/v2 v2.10.3
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/swaggo/files v1.0.1 // indirect
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96 // indirect
 	golang.org/x/image v0.35.0 // indirect
-	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
