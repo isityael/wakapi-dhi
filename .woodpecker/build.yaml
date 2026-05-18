@@ -3,7 +3,7 @@
 when:
   - event: manual
   - event: push
-    branch: main
+    branch: master
     path:
       include: ["**/*.go", "go.*", "Dockerfile", ".woodpecker/**"]
 
