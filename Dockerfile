@@ -34,7 +34,7 @@ RUN mkdir ./data ./app && \
 # we could use `base:nonroot`, which already includes ca-certificates and tz, but that one it actually larger than alpine,
 # probably because of glibc, whereas alpine uses musl. The `static:nonroot`, doesn't include any libc implementation, because only meant for true static binaries without cgo, etc.
 
-FROM gcr.io/distroless/static:nonroot@sha256:e3f945647ffb95b5839c07038d64f9811adf17308b9121d8a2b87b6a22a80a39
+FROM gcr.io/distroless/static:nonroot@sha256:963fa6c544fe5ce420f1f54fb88b6fb01479f054c8056d0f74cc2c6000df5240
 WORKDIR /app
 
 # See README.md and config.default.yml for all config options
