@@ -55,9 +55,9 @@ COPY --from=build-env --chown=nonroot:nonroot --chmod=0555 /usr/share/zoneinfo /
 COPY --from=build-env --chown=nonroot:nonroot /staging/app /app
 COPY --from=build-env --chown=nonroot:nonroot /staging/data /data
 
-LABEL org.opencontainers.image.url="https://github.com/sm-moshi/wakapi" \
+LABEL org.opencontainers.image.url="https://github.com/yaelmoshi/wakapi" \
     org.opencontainers.image.documentation="https://github.com/muety/wakapi" \
-    org.opencontainers.image.source="https://github.com/sm-moshi/wakapi" \
+    org.opencontainers.image.source="https://github.com/yaelmoshi/wakapi" \
     org.opencontainers.image.title="Wakapi (DHI-hardened)" \
     org.opencontainers.image.licenses="MIT" \
     org.opencontainers.image.description="Wakapi — DHI-hardened fork with bug fixes"
