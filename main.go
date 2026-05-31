@@ -18,7 +18,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/lpar/gzipped/v2"
 	"github.com/muety/wakapi/utils"
-	_ "github.com/ncruces/go-sqlite3/embed"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
