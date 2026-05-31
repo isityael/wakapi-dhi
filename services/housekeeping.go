@@ -2,7 +2,6 @@ package services
 
 import (
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -18,8 +17,8 @@ type HousekeepingService struct {
 	projectSrvc   IProjectService
 	summarySrvc   ISummaryService
 	baseRepo      repositories.IBaseRepository
-	queueDefault  *artifex.Dispatcher
-	queueWorkers  *artifex.Dispatcher
+	queueDefault  *config.JobQueue
+	queueWorkers  *config.JobQueue
 }
 
 func NewHousekeepingService(userService IUserService, heartbeatService IHeartbeatService, projectService IProjectService, summaryService ISummaryService, baseRepository repositories.IBaseRepository) *HousekeepingService {

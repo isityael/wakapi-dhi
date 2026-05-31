@@ -6,7 +6,6 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
@@ -39,9 +38,9 @@ func (suite *ProjectServiceTestSuite) BeforeTest(suiteName, testName string) {
 	suite.HeartbeatService = new(mocks.HeartbeatServiceMock)
 }
 
-func (suite *ProjectServiceTestSuite) createSut() (*ProjectService, *hub.Hub) {
+func (suite *ProjectServiceTestSuite) createSut() (*ProjectService, *config.EventHub) {
 	originalEventBus := config.EventBus()
-	eventBus := hub.New()
+	eventBus := config.NewEventHub()
 	config.SetEventBus(eventBus)
 	// restore event bus
 	sut := NewProjectService(suite.AliasService, suite.HeartbeatRepository, suite.HeartbeatService)
@@ -157,7 +156,7 @@ func (suite *ProjectServiceTestSuite) TestProjectService_EventHeartbeatCreate_In
 		Project: "new-project",
 	}
 
-	eventBus.Publish(hub.Message{
+	eventBus.Publish(config.EventMessage{
 		Name: config.EventHeartbeatCreate,
 		Fields: map[string]interface{}{
 			config.FieldPayload: heartbeat,
@@ -182,7 +181,7 @@ func (suite *ProjectServiceTestSuite) TestProjectService_EventAliasChanged_Inval
 	uniqueSet := datastructure.New[string]("some-project")
 	sut.cache.Set(cacheKeyProjects, uniqueSet, 5*time.Minute)
 
-	eventBus.Publish(hub.Message{
+	eventBus.Publish(config.EventMessage{
 		Name: config.EventAliasCreate,
 		Fields: map[string]interface{}{
 			config.FieldUserId: suite.TestUser.ID,

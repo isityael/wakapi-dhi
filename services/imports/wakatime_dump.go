@@ -6,16 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
-	"github.com/muety/wakapi/utils"
+	"log/slog"
 	"net/http"
 	"time"
 
-	"github.com/muety/artifex/v2"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
-	"log/slog"
+	"github.com/muety/wakapi/utils"
 )
 
 // data example: https://github.com/muety/wakapi/issues/323#issuecomment-1627467052
@@ -23,7 +22,7 @@ import (
 type WakatimeDumpImporter struct {
 	apiKey     string
 	httpClient *http.Client
-	queue      *artifex.Dispatcher
+	queue      *config.JobQueue
 }
 
 func NewWakatimeDumpImporter(apiKey string) *WakatimeDumpImporter {
@@ -59,7 +58,7 @@ func (w *WakatimeDumpImporter) Import(user *models.User, minFrom time.Time, maxT
 	}
 	defer res.Body.Close()
 
-	var readyPollTimer *artifex.DispatchTicker
+	var readyPollTimer *config.DispatchTicker
 
 	// callbacks
 	checkDumpAvailable := func(user *models.User) (bool, *wakatime.DataDumpData, error) {

@@ -2,21 +2,18 @@ package services
 
 import (
 	"errors"
-	"strings"
-	"time"
-
-	"github.com/leandro-lugaresi/hub"
-	"github.com/patrickmn/go-cache"
-
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
+	"github.com/muety/wakapi/utils/cache"
+	"strings"
+	"time"
 )
 
 type ApiKeyService struct {
 	config     *config.Config
 	cache      *cache.Cache
-	eventBus   *hub.Hub
+	eventBus   *config.EventHub
 	repository repositories.IApiKeyRepository
 }
 
@@ -29,14 +26,14 @@ func NewApiKeyService(apiKeyRepository repositories.IApiKeyRepository) *ApiKeySe
 	}
 
 	onApiKeyCreate := srv.eventBus.Subscribe(0, config.EventApiKeyCreate)
-	go func(sub *hub.Subscription) {
+	go func(sub *config.EventSubscription) {
 		for m := range sub.Receiver {
 			srv.invalidateUserCache(m.Fields[config.FieldUserId].(string))
 		}
 	}(&onApiKeyCreate)
 
 	onApiKeyDelete := srv.eventBus.Subscribe(0, config.EventApiKeyDelete)
-	go func(sub *hub.Subscription) {
+	go func(sub *config.EventSubscription) {
 		for m := range sub.Receiver {
 			srv.invalidateUserCache(m.Fields[config.FieldUserId].(string))
 		}
@@ -88,7 +85,7 @@ func (srv *ApiKeyService) notifyUpdate(apiKey *models.ApiKey, isDelete bool) {
 	if isDelete {
 		name = config.EventApiKeyDelete
 	}
-	srv.eventBus.Publish(hub.Message{
+	srv.eventBus.Publish(config.EventMessage{
 		Name:   name,
 		Fields: map[string]interface{}{config.FieldPayload: apiKey, config.FieldUserId: apiKey.UserID},
 	})

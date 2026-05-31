@@ -5,7 +5,6 @@ go 1.26
 require (
 	codeberg.org/Codeberg/avatars v1.0.0
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
-	github.com/alexedwards/argon2id v1.0.0
 	github.com/alitto/pond/v2 v2.7.1
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/coreos/go-oidc/v3 v3.18.0
@@ -25,15 +24,11 @@ require (
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
 	github.com/jinzhu/configor v1.2.2
-	github.com/leandro-lugaresi/hub v1.1.1
 	github.com/lpar/gzipped/v2 v2.1.0
 	github.com/mileusna/useragent v1.3.5
-	github.com/muety/artifex/v2 v2.0.1-0.20221201142708-74e7d3f6feaf
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
-	github.com/ncruces/go-sqlite3 v0.34.3
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
-	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.11.1
 	github.com/stripe/stripe-go/v76 v76.25.0
@@ -62,6 +57,7 @@ require (
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
+	github.com/ncruces/go-sqlite3 v0.34.3 // indirect
 	github.com/ncruces/go-sqlite3-wasm/v2 v2.5.35301 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
@@ -94,7 +90,6 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kevinpollet/nego v0.0.0-20211010160919-a65cd48cee43 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rs/cors v1.11.1
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/slog-common v0.21.0 // indirect
 	github.com/samber/slog-multi v1.8.0

@@ -18,7 +18,7 @@ require (
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/alexedwards/argon2id v1.0.0 // indirect
+	github.com/alitto/pond/v2 v2.7.1 // indirect
 	github.com/becheran/wildmatch-go v1.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/coreos/go-oidc/v3 v3.18.0 // indirect
@@ -45,10 +45,8 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/leandro-lugaresi/hub v1.1.1 // indirect
 	github.com/mileusna/useragent v1.3.5 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
-	github.com/muety/artifex/v2 v2.0.1-0.20221201142708-74e7d3f6feaf // indirect
 	github.com/ncruces/go-sqlite3-wasm/v2 v2.5.35301 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect

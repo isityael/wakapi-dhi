@@ -9,18 +9,17 @@ import (
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/duke-git/lancet/v2/maputil"
-	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
-	"github.com/patrickmn/go-cache"
+	"github.com/muety/wakapi/utils/cache"
 )
 
 type ProjectService struct {
 	config        *config.Config
 	cache         *cache.Cache
-	eventBus      *hub.Hub
+	eventBus      *config.EventHub
 	repository    repositories.IHeartbeatRepository
 	aliasService  IAliasService
 	heartbeatSrvc IHeartbeatService
@@ -37,7 +36,7 @@ func NewProjectService(aliasService IAliasService, heartbeatRepo repositories.IH
 	}
 
 	sub1 := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
-	go func(sub *hub.Subscription) {
+	go func(sub *config.EventSubscription) {
 		for m := range sub.Receiver {
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
 			srv.checkInvalidateProjectStatsCache(heartbeat)
@@ -45,7 +44,7 @@ func NewProjectService(aliasService IAliasService, heartbeatRepo repositories.IH
 	}(&sub1)
 
 	sub2 := srv.eventBus.Subscribe(0, config.TopicAlias)
-	go func(sub *hub.Subscription) {
+	go func(sub *config.EventSubscription) {
 		for m := range sub.Receiver {
 			userId := m.Fields[config.FieldUserId].(string)
 			srv.invalidateProjectStatsCache(userId)

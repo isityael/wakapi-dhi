@@ -7,10 +7,9 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/repositories"
-	"github.com/patrickmn/go-cache"
+	"github.com/muety/wakapi/utils/cache"
 
 	"github.com/muety/wakapi/models"
 )
@@ -18,7 +17,7 @@ import (
 type HeartbeatService struct {
 	config              *config.Config
 	cache               *cache.Cache
-	eventBus            *hub.Hub
+	eventBus            *config.EventHub
 	repository          repositories.IHeartbeatRepository
 	languageMappingSrvc ILanguageMappingService
 	entityCacheLock     *sync.RWMutex
@@ -38,7 +37,7 @@ func NewHeartbeatService(heartbeatRepo repositories.IHeartbeatRepository, langua
 	// potentially need heartbeat events elsewhere throughout the application some time
 	// so it's more consistent to already have it this way
 	sub1 := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
-	go func(sub *hub.Subscription) {
+	go func(sub *config.EventSubscription) {
 		for m := range sub.Receiver {
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
 			srv.cache.IncrementInt64(srv.countByUserCacheKey(heartbeat.UserID), 1) // increment doesn't update expiration time
@@ -350,7 +349,7 @@ func (srv *HeartbeatService) updateEntityUserCacheByHeartbeat(hb *models.Heartbe
 
 func (srv *HeartbeatService) notifyBatch(heartbeats []*models.Heartbeat) {
 	for _, hb := range heartbeats {
-		srv.eventBus.Publish(hub.Message{
+		srv.eventBus.Publish(config.EventMessage{
 			Name:   config.EventHeartbeatCreate,
 			Fields: map[string]interface{}{config.FieldPayload: hb},
 		})
