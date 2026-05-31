@@ -258,8 +258,9 @@ func (suite *ConfigTestSuite) TestSqliteConnectionString() {
 		Name:    "test_name",
 		Dialect: "sqlite3",
 	}
-	suite.True(strings.HasPrefix(sqliteConnectionString(c), c.Name))
+	suite.True(strings.HasPrefix(sqliteConnectionString(c), "file:"+c.Name))
 	suite.Contains(strings.ToLower(sqliteConnectionString(c)), "journal_mode=wal")
+	suite.Contains(strings.ToLower(sqliteConnectionString(c)), "_timefmt=")
 }
 
 func (suite *ConfigTestSuite) TestPublicNetUrl() {
