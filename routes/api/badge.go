@@ -12,8 +12,8 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"github.com/muety/wakapi/utils/cache"
 	"github.com/narqo/go-badge"
-	"github.com/patrickmn/go-cache"
 	"net/http"
 	"time"
 )

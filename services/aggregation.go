@@ -7,7 +7,6 @@ import (
 	"time"
 
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
-	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 
 	"github.com/muety/wakapi/models"
@@ -26,9 +25,9 @@ type AggregationService struct {
 	heartbeatService      IHeartbeatService
 	durationService       IDurationService
 	inProgress            datastructure.Set[string]
-	queueDefault          *artifex.Dispatcher
-	queueSummaryWorkers   *artifex.Dispatcher
-	queuedDurationWorkers *artifex.Dispatcher
+	queueDefault          *config.JobQueue
+	queueSummaryWorkers   *config.JobQueue
+	queuedDurationWorkers *config.JobQueue
 }
 
 func NewAggregationService(userService IUserService, summaryService ISummaryService, heartbeatService IHeartbeatService, durationService IDurationService) *AggregationService {

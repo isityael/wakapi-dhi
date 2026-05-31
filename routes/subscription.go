@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
-	"github.com/leandro-lugaresi/hub"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
@@ -38,7 +37,7 @@ import (
 
 type SubscriptionHandler struct {
 	config       *conf.Config
-	eventBus     *hub.Hub
+	eventBus     *conf.EventHub
 	userSrvc     services.IUserService
 	mailSrvc     services.IMailService
 	keyValueSrvc services.IKeyValueService
@@ -74,7 +73,7 @@ func NewSubscriptionHandler(
 	}
 
 	onUserDelete := eventBus.Subscribe(0, conf.EventUserDelete)
-	go func(sub *hub.Subscription) {
+	go func(sub *conf.EventSubscription) {
 		for m := range sub.Receiver {
 			user := m.Fields[conf.FieldPayload].(*models.User)
 			if !user.HasActiveSubscription() {

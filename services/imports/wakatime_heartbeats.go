@@ -5,19 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/alitto/pond/v2"
-	"github.com/duke-git/lancet/v2/datetime"
-	"github.com/muety/artifex/v2"
-	"github.com/muety/wakapi/utils"
+	"log/slog"
 	"net/http"
 	"strings"
 	"sync/atomic"
 	"time"
 
+	"github.com/alitto/pond/v2"
+	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
-	"log/slog"
+	"github.com/muety/wakapi/utils"
 )
 
 const OriginWakatime = "wakatime"
@@ -32,7 +31,7 @@ const (
 type WakatimeHeartbeatsImporter struct {
 	apiKey     string
 	httpClient *http.Client
-	queue      *artifex.Dispatcher
+	queue      *config.JobQueue
 }
 
 func NewWakatimeHeartbeatImporter(apiKey string) *WakatimeHeartbeatsImporter {

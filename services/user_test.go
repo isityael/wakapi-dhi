@@ -6,7 +6,7 @@ import (
 
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
-	"github.com/patrickmn/go-cache"
+	"github.com/muety/wakapi/utils/cache"
 	"github.com/stretchr/testify/suite"
 )
 

@@ -1,18 +1,16 @@
 package services
 
 import (
-	"math/rand"
-	"strings"
-	"testing"
-	"time"
-
-	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"math/rand"
+	"strings"
+	"testing"
+	"time"
 )
 
 const (
@@ -723,7 +721,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Cl
 	suite.SummaryRepository.On("GetLastBySingleUser", TestUserId).Return(latestSummaryTime, nil).Once()
 	suite.SummaryRepository.On("DeleteByUserAfter", TestUserId, historicalHeartbeatTime).Return(nil).Once()
 
-	eventBus.Publish(hub.Message{
+	eventBus.Publish(config.EventMessage{
 		Name: config.EventHeartbeatCreate,
 		Fields: map[string]interface{}{
 			config.FieldPayload: heartbeat,
@@ -753,7 +751,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Ke
 	// On the first heartbeat (no cache entry yet), the handler still calls GetLatestBySingleUser
 	suite.SummaryRepository.On("GetLastBySingleUser", TestUserId).Return(latestSummaryTime, nil).Once()
 
-	eventBus.Publish(hub.Message{
+	eventBus.Publish(config.EventMessage{
 		Name: config.EventHeartbeatCreate,
 		Fields: map[string]interface{}{
 			config.FieldPayload: heartbeat,
@@ -786,7 +784,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Sk
 
 	suite.SummaryRepository.On("GetLastBySingleUser", TestUserId).Return(latestSummaryTime, nil).Once() // Only the first heartbeat should trigger the DB lookup
 
-	eventBus.Publish(hub.Message{
+	eventBus.Publish(config.EventMessage{
 		Name: config.EventHeartbeatCreate,
 		Fields: map[string]interface{}{
 			config.FieldPayload: firstHeartbeat,
@@ -797,7 +795,7 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Sk
 		return mockCalledWith(suite.SummaryRepository.Calls, "GetLastBySingleUser", TestUserId)
 	}, 2*time.Second, 20*time.Millisecond)
 
-	eventBus.Publish(hub.Message{
+	eventBus.Publish(config.EventMessage{
 		Name: config.EventHeartbeatCreate,
 		Fields: map[string]interface{}{
 			config.FieldPayload: secondHeartbeat,
@@ -811,14 +809,14 @@ func (suite *SummaryServiceTestSuite) TestSummaryService_HeartbeatCreateEvent_Sk
 	_ = sut
 }
 
-func (suite *SummaryServiceTestSuite) createSut() (*SummaryService, *hub.Hub) {
+func (suite *SummaryServiceTestSuite) createSut() (*SummaryService, *config.EventHub) {
 	// This is a dirty, dirty hack and not thread-safe at all, but should do most of the time.
 	// Rationale: all services use a shared event hub for subscriptions to listen for events.
 	// When running tests that publish an event, it might be received by the subscriber goroutine of some other services, leading to "cross-talk".
 	// We create a custom, isolated event bus here, "very quickly" put it in place right before instantiating the service and restore the original "global" one right after.
 	originalEventBus := config.EventBus()
 	defer config.SetEventBus(originalEventBus)
-	eventBus := hub.New()
+	eventBus := config.NewEventHub()
 	config.SetEventBus(eventBus)
 	return NewSummaryService(suite.SummaryRepository, suite.HeartbeatService, suite.DurationService, suite.AliasService, suite.ProjectLabelService), eventBus
 }

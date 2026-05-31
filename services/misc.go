@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
 
@@ -37,9 +36,9 @@ type MiscService struct {
 	summaryService   ISummaryService
 	keyValueService  IKeyValueService
 	mailService      IMailService
-	queueDefault     *artifex.Dispatcher
-	queueWorkers     *artifex.Dispatcher
-	queueMails       *artifex.Dispatcher
+	queueDefault     *config.JobQueue
+	queueWorkers     *config.JobQueue
+	queueMails       *config.JobQueue
 }
 
 func NewMiscService(userService IUserService, heartbeatService IHeartbeatService, summaryService ISummaryService, keyValueService IKeyValueService, mailService IMailService) *MiscService {

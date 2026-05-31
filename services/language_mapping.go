@@ -2,13 +2,11 @@ package services
 
 import (
 	"errors"
-	"time"
-
-	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
-	"github.com/patrickmn/go-cache"
+	"github.com/muety/wakapi/utils/cache"
+	"time"
 )
 
 /*
@@ -21,7 +19,7 @@ import (
 type LanguageMappingService struct {
 	config     *config.Config
 	cache      *cache.Cache
-	eventBus   *hub.Hub
+	eventBus   *config.EventHub
 	repository repositories.ILanguageMappingRepository
 }
 
@@ -92,7 +90,7 @@ func (srv *LanguageMappingService) getServerMappings() map[string]string {
 
 func (srv *LanguageMappingService) notifyUpdate(mapping *models.LanguageMapping) {
 	name := config.EventLanguageMappingsChanged
-	srv.eventBus.Publish(hub.Message{
+	srv.eventBus.Publish(config.EventMessage{
 		Name:   name,
 		Fields: map[string]interface{}{config.FieldPayload: mapping, config.FieldUserId: mapping.UserID},
 	})

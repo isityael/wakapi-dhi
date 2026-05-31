@@ -14,7 +14,7 @@ import (
 	"github.com/muety/wakapi/models"
 	v1 "github.com/muety/wakapi/models/compat/shields/v1"
 	"github.com/muety/wakapi/services"
-	"github.com/patrickmn/go-cache"
+	"github.com/muety/wakapi/utils/cache"
 )
 
 type BadgeHandler struct {

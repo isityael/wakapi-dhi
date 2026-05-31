@@ -5,7 +5,6 @@ import (
 
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
-	"github.com/rs/cors"
 
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/helpers"
@@ -52,9 +51,16 @@ func (h *HeartbeatApiHandler) RegisterRoutes(router chi.Router) {
 
 		// https://github.com/muety/wakapi/issues/690
 		for _, route := range r.Routes() {
-			r.Options(route.Pattern, cors.AllowAll().HandlerFunc)
+			r.Options(route.Pattern, allowAllPreflight)
 		}
 	})
+}
+
+func allowAllPreflight(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", r.Header.Get("Access-Control-Request-Method"))
+	w.Header().Set("Access-Control-Allow-Headers", r.Header.Get("Access-Control-Request-Headers"))
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // @Summary Push a new heartbeat

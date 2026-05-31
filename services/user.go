@@ -12,20 +12,19 @@ import (
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/validator"
 	"github.com/gofrs/uuid/v5"
-	"github.com/leandro-lugaresi/hub"
-	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
+	"github.com/muety/wakapi/utils/cache"
 )
 
 type UserService struct {
 	config              *config.Config
 	cache               *cache.Cache
-	eventBus            *hub.Hub
+	eventBus            *config.EventHub
 	keyValueService     IKeyValueService
 	mailService         IMailService
 	apiKeyService       IApiKeyService
@@ -47,7 +46,7 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 	}
 
 	sub1 := srv.eventBus.Subscribe(0, config.EventWakatimeFailure)
-	go func(sub *hub.Subscription) {
+	go func(sub *config.EventSubscription) {
 		for m := range sub.Receiver {
 			user := m.Fields[config.FieldUser].(*models.User)
 			n := m.Fields[config.FieldPayload].(int)
@@ -69,7 +68,7 @@ func NewUserService(keyValueService IKeyValueService, mailService IMailService, 
 	}(&sub1)
 
 	sub2 := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
-	go func(sub *hub.Subscription) {
+	go func(sub *config.EventSubscription) {
 		for m := range sub.Receiver {
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
 			if time.Now().Sub(heartbeat.Time.T()) > models.DefaultHeartbeatsTimeout {
@@ -370,14 +369,14 @@ func (srv *UserService) FlushUserCache(userId string) {
 }
 
 func (srv *UserService) notifyUpdate(user *models.User) {
-	srv.eventBus.Publish(hub.Message{
+	srv.eventBus.Publish(config.EventMessage{
 		Name:   config.EventUserUpdate,
 		Fields: map[string]interface{}{config.FieldPayload: user},
 	})
 }
 
 func (srv *UserService) notifyDelete(user *models.User) {
-	srv.eventBus.Publish(hub.Message{
+	srv.eventBus.Publish(config.EventMessage{
 		Name:   config.EventUserDelete,
 		Fields: map[string]interface{}{config.FieldPayload: user},
 	})

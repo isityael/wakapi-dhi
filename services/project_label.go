@@ -5,18 +5,17 @@ import (
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/leandro-lugaresi/hub"
-	"github.com/patrickmn/go-cache"
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
+	"github.com/muety/wakapi/utils/cache"
 )
 
 type ProjectLabelService struct {
 	config     *config.Config
 	cache      *cache.Cache
-	eventBus   *hub.Hub
+	eventBus   *config.EventHub
 	repository repositories.IProjectLabelRepository
 }
 
@@ -96,7 +95,7 @@ func (srv *ProjectLabelService) notifyUpdate(label *models.ProjectLabel, isDelet
 	if isDelete {
 		name = config.EventProjectLabelDelete
 	}
-	srv.eventBus.Publish(hub.Message{
+	srv.eventBus.Publish(config.EventMessage{
 		Name:   name,
 		Fields: map[string]interface{}{config.FieldPayload: label, config.FieldUserId: label.UserID},
 	})

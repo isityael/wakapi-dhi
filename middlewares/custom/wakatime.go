@@ -6,17 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"log/slog"
-	"net/http"
-	"time"
-
-	"github.com/leandro-lugaresi/hub"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
 	routeutils "github.com/muety/wakapi/routes/utils"
-	"github.com/patrickmn/go-cache"
+	"github.com/muety/wakapi/utils/cache"
+	"io"
+	"log/slog"
+	"net/http"
+	"time"
 )
 
 const maxFailuresPerDay = 100
@@ -26,7 +24,7 @@ type WakatimeRelayMiddleware struct {
 	httpClient   *http.Client
 	hashCache    *cache.Cache
 	failureCache *cache.Cache
-	eventBus     *hub.Hub
+	eventBus     *config.EventHub
 }
 
 func NewWakatimeRelayMiddleware() *WakatimeRelayMiddleware {
@@ -137,7 +135,7 @@ func (m *WakatimeRelayMiddleware) send(method, url string, body io.Reader, heade
 			m.failureCache.SetDefault(forUser.ID, 0)
 		}
 		if n, _ := m.failureCache.IncrementInt(forUser.ID, 1); n == maxFailuresPerDay {
-			m.eventBus.Publish(hub.Message{
+			m.eventBus.Publish(config.EventMessage{
 				Name:   config.EventWakatimeFailure,
 				Fields: map[string]interface{}{config.FieldUser: forUser, config.FieldPayload: n},
 			})

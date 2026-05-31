@@ -11,8 +11,6 @@ import (
 	"github.com/duke-git/lancet/v2/maputil"
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/duke-git/lancet/v2/tuple"
-	"github.com/leandro-lugaresi/hub"
-	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
@@ -23,13 +21,13 @@ const generateDurationsInterval = 12 * time.Hour
 
 type DurationService struct {
 	config                 *config.Config
-	eventBus               *hub.Hub
+	eventBus               *config.EventHub
 	repository             repositories.IDurationRepository
 	heartbeatService       IHeartbeatService
 	userService            IUserService
 	languageMappingService ILanguageMappingService
 	lastUserJob            map[string]time.Time
-	queue                  *artifex.Dispatcher
+	queue                  *config.JobQueue
 	pending                datastructure.Set[string] // currently running per-user regeneration jobs
 }
 
@@ -48,7 +46,7 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 
 	// TODO: refactor to updating durations on-the-fly as heartbeats flow in, instead of batch-wise
 	sub1 := srv.eventBus.Subscribe(0, config.EventHeartbeatCreate)
-	go func(sub *hub.Subscription) {
+	go func(sub *config.EventSubscription) {
 		for m := range sub.Receiver {
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
 			user := heartbeat.User
