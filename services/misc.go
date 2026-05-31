@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/muety/artifex/v2"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
-	"go.uber.org/atomic"
 
 	"github.com/muety/wakapi/models"
 )
@@ -95,7 +95,7 @@ func (srv *MiscService) CountTotalTime() {
 		return
 	}
 
-	var totalTime = atomic.NewDuration(0)
+	var totalTime atomic.Int64
 	var pendingJobs sync.WaitGroup
 	pendingJobs.Add(len(users))
 
@@ -103,7 +103,7 @@ func (srv *MiscService) CountTotalTime() {
 		user := *u
 		if err := srv.queueWorkers.Dispatch(func() {
 			defer pendingJobs.Done()
-			totalTime.Add(srv.countUserTotalTime(user.ID))
+			totalTime.Add(int64(srv.countUserTotalTime(user.ID)))
 		}); err != nil {
 			config.Log().Error("failed to enqueue counting job for user", "userID", user.ID)
 			pendingJobs.Done()
@@ -115,7 +115,7 @@ func (srv *MiscService) CountTotalTime() {
 		if !utils.WaitTimeout(&pendingJobs, 2*countUsersEvery) {
 			if err := srv.keyValueService.PutString(&models.KeyStringValue{
 				Key:   config.KeyLatestTotalTime,
-				Value: totalTime.Load().String(),
+				Value: time.Duration(totalTime.Load()).String(),
 			}); err != nil {
 				config.Log().Error("failed to save total time count", "error", err)
 			}

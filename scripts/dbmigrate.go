@@ -55,15 +55,17 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"regexp"
 	"time"
 
-	"github.com/glebarez/sqlite"
 	"github.com/jinzhu/configor"
 	wakapiConfig "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
+	_ "github.com/ncruces/go-sqlite3/embed"
+	sqlite "github.com/ncruces/go-sqlite3/gormlite"
 	"github.com/schollz/progressbar/v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -355,7 +357,7 @@ func main() {
 				for heartbeats := range data {
 					fixHeartbeatsBatched(heartbeats)
 					if err := heartbeatTarget.InsertBatch(heartbeats); err != nil {
-						log.Printf("warning: failed to insert batch of heartbeats for user (%s)\n", user.ID, err)
+						log.Printf("warning: failed to insert batch of heartbeats for user %s (%s)\n", user.ID, err)
 						continue
 					}
 				}
@@ -379,7 +381,12 @@ func getDb(cfg *dbConfig) (*gorm.DB, error) {
 	)
 
 	if cfg.Dialect == "sqlite" {
-		return gorm.Open(sqlite.Open(cfg.Name), &gorm.Config{
+		query := url.Values{}
+		query.Add("busy_timeout", "10000")
+		query.Add("journal_mode", "wal")
+		query.Add("_timefmt", "2006-01-02 15:04:05.999-07:00")
+
+		return gorm.Open(sqlite.Open(fmt.Sprintf("file:%s?%s", cfg.Name, query.Encode())), &gorm.Config{
 			Logger: gormLogger,
 		})
 	}

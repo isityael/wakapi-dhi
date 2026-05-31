@@ -1,28 +1,23 @@
 package fs
 
 import (
-	lru "github.com/hashicorp/golang-lru/v2"
+	"github.com/muety/wakapi/utils/cache"
 	"io/fs"
 	"net/http"
 	"strings"
 )
 
 func NewExistsFS(fs fs.FS) ExistsFS {
-	cache, err := lru.New[string, bool](1 << 24)
-	if err != nil {
-		panic(err)
-	}
-
 	return ExistsFS{
 		FS:    fs,
-		cache: cache,
+		cache: cache.NewLRU[string, bool](1 << 24),
 	}
 }
 
 type ExistsFS struct {
 	fs.FS
 	UseCache bool
-	cache    *lru.Cache[string, bool]
+	cache    *cache.LRU[string, bool]
 }
 
 func (efs ExistsFS) WithCache(withCache bool) ExistsFS {

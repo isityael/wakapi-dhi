@@ -15,7 +15,6 @@ require (
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
 	github.com/emersion/go-smtp v0.24.0
 	github.com/getsentry/sentry-go v0.46.2
-	github.com/glebarez/sqlite v1.11.0
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/go-chi/httprate v0.15.0
 	github.com/go-webauthn/webauthn v0.17.4
@@ -25,13 +24,14 @@ require (
 	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
-	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jinzhu/configor v1.2.2
 	github.com/leandro-lugaresi/hub v1.1.1
 	github.com/lpar/gzipped/v2 v2.1.0
 	github.com/mileusna/useragent v1.3.5
 	github.com/muety/artifex/v2 v2.0.1-0.20221201142708-74e7d3f6feaf
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
+	github.com/ncruces/go-sqlite3 v0.34.3
+	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
@@ -39,7 +39,6 @@ require (
 	github.com/stripe/stripe-go/v76 v76.25.0
 	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.6
-	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.52.0
 	golang.org/x/oauth2 v0.36.0
 	gorm.io/driver/mysql v1.6.0
@@ -63,6 +62,8 @@ require (
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
+	github.com/ncruces/go-sqlite3-wasm/v2 v2.5.35301 // indirect
+	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
@@ -79,8 +80,6 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/becheran/wildmatch-go v1.0.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/glebarez/go-sqlite v1.22.0 // indirect
 	github.com/go-openapi/jsonpointer v0.22.4 // indirect
 	github.com/go-openapi/jsonreference v0.21.4 // indirect
 	github.com/go-openapi/spec v0.22.3 // indirect
@@ -94,10 +93,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kevinpollet/nego v0.0.0-20211010160919-a65cd48cee43 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rs/cors v1.11.1
 	github.com/samber/lo v1.53.0 // indirect
 	github.com/samber/slog-common v0.21.0 // indirect
@@ -111,10 +107,6 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.67.6 // indirect
-	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.44.1 // indirect
 )
 
 godebug x509negativeserial=1 // https://stackoverflow.com/a/79062183/3112139

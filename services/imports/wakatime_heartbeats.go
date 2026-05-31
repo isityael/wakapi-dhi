@@ -11,12 +11,12 @@ import (
 	"github.com/muety/wakapi/utils"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
-	"go.uber.org/atomic"
 	"log/slog"
 )
 
@@ -84,7 +84,8 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 
 		days := generateDays(startDate, endDate)
 
-		c := atomic.NewUint32(uint32(len(days)))
+		var remainingDays atomic.Uint32
+		remainingDays.Store(uint32(len(days)))
 		wp := pond.NewPool(maxWorkers)
 
 		for _, d := range days {
@@ -107,7 +108,7 @@ func (w *WakatimeHeartbeatsImporter) Import(user *models.User, minFrom time.Time
 					out <- hb
 				}
 
-				if c.Dec() == 0 {
+				if remainingDays.Add(^uint32(0)) == 0 {
 					close(out)
 				}
 			})

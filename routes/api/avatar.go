@@ -4,23 +4,20 @@ import (
 	"codeberg.org/Codeberg/avatars"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	lru "github.com/hashicorp/golang-lru/v2"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
+	"github.com/muety/wakapi/utils/cache"
 	"net/http"
 	"time"
 )
 
 type AvatarHandler struct {
 	config *conf.Config
-	cache  *lru.Cache[string, string]
+	cache  *cache.LRU[string, string]
 }
 
 func NewAvatarHandler() *AvatarHandler {
-	cache, err := lru.New[string, string](1 * 1000 * 64) // assuming an avatar is 1 kb, allocate up to 64 mb of memory for avatars cache
-	if err != nil {
-		panic(err)
-	}
+	cache := cache.NewLRU[string, string](1 * 1000 * 64) // assuming an avatar is 1 kb, allocate up to 64 mb of memory for avatars cache
 
 	return &AvatarHandler{
 		config: conf.Get(),
