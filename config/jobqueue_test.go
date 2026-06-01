@@ -56,3 +56,12 @@ func TestJobQueueDispatchEveryCanBeStopped(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	assert.Equal(t, afterStop, runs.Load())
 }
+
+func TestJobQueueDispatchCronAcceptsSixFieldExpressions(t *testing.T) {
+	q := NewJobQueue("test", 1, 8)
+	defer q.Stop()
+
+	cron, err := q.DispatchCron(func() {}, "0 0 18 * * *")
+	require.NoError(t, err)
+	defer cron.Stop()
+}

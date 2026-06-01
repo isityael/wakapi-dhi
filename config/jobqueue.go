@@ -133,7 +133,7 @@ func (q *JobQueue) DispatchEvery(run func(), interval time.Duration) (*DispatchT
 }
 
 func (q *JobQueue) DispatchCron(run func(), cronStr string) (*DispatchCron, error) {
-	c := cron.New()
+	c := cron.New(cron.WithSeconds())
 	if _, err := c.AddFunc(cronStr, func() {
 		if err := q.Dispatch(run); err != nil {
 			slog.Error("failed to dispatch cron job", "queue", q.name, "error", err)
