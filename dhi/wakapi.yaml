@@ -15,7 +15,7 @@ dates:
 vars:
   BASE_DIGEST: sha256:5561af898afa6015a84d39a2cefdfc7fc386f45026d7834c95d8dbc450061563
   BASE_TAG: 20250419-debian13
-  COMMIT_SHA: e70abc1ec2f2b074f4d5b2d2758fbf2d8e485567
+  COMMIT_SHA: 2e6421ea9b383857ec23f548dae38efae0aaf89d
   GOLANG_REFERENCE: dhi.io/golang:1.26.4-debian13-dev@sha256:9350c6e0c0a06f23b487c39850188b2a5c2bd176d1fc5ae361400c8c068e42b0
   WAKAPI_VERSION: 2.17.3-yaelmoshi.2
 contents:
@@ -45,28 +45,13 @@ contents:
             gid: 0
       pipeline:
         - name: build wakapi
-          uses: go/build@v1
-          with:
-            env:
-              CGO_ENABLED: "0"
-              GOFLAGS: -mod=vendor
-              GOEXPERIMENT: jsonv2
-            ldflags:
-              - -s
-              - -w
-            output: ${target.dir}/app/wakapi
-            packages: .
+          runs: |
+            set -eux -o pipefail
+            CGO_ENABLED=0 GOFLAGS=-mod=mod GOEXPERIMENT=jsonv2 go build -trimpath -ldflags "-s -w" -o "${target.dir}/app/wakapi" .
         - name: build healthcheck
-          uses: go/build@v1
-          with:
-            env:
-              CGO_ENABLED: "0"
-              GOFLAGS: -mod=vendor
-            ldflags:
-              - -s
-              - -w
-            output: ${target.dir}/app/healthcheck
-            packages: ./scripts/healthcheck.go
+          runs: |
+            set -eux -o pipefail
+            CGO_ENABLED=0 GOFLAGS=-mod=mod go build -trimpath -ldflags "-s -w" -o "${target.dir}/app/healthcheck" ./scripts/healthcheck.go
         - name: install defaults
           runs: |
             set -eux -o pipefail

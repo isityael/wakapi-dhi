@@ -5,7 +5,7 @@ when:
   - event: push
     branch: master
     path:
-      include: ["**/*.go", "go.*", "dhi/**", "vendor/**", ".woodpecker/**"]
+      include: ["**/*.go", "go.*", "dhi/**", ".woodpecker/**"]
 
 steps:
   - name: build-and-push-ghcr
@@ -16,8 +16,6 @@ steps:
       repo: ghcr.io/yaelmoshi/wakapi-dhi
       dockerfile: dhi/wakapi.yaml
       platforms: linux/amd64
-      build_args:
-        COMMIT_SHA: "${CI_COMMIT_SHA}"
       tags:
         - "${CI_COMMIT_SHA:0:8}"
         - "2.17.3-yaelmoshi.2"
