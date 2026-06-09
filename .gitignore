@@ -1,6 +1,8 @@
 launch.json
 .vscode
 wakapi
+!vendor/github.com/muety/wakapi/
+!vendor/github.com/muety/wakapi/**
 healthcheck
 dbmigrate
 .idea
