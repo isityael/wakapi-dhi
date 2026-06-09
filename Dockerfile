@@ -33,7 +33,7 @@ RUN mkdir ./data ./app && \
 # Note on the static runtime image:
 # Wakapi is built with CGO_ENABLED=0, so the final image only needs a minimal runtime for static binaries.
 
-FROM dhi.io/static:20250419-debian13@sha256:5561af898afa6015a84d39a2cefdfc7fc386f45026d7834c95d8dbc450061563
+FROM dhi.io/static:20250419-debian13@sha256:80be587e7831800d3e6d82ffc8d737bacf0beae91a47122f81faf9f8a9b06040
 WORKDIR /app
 
 # See README.md and config.default.yml for all config options
