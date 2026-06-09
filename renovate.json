@@ -4,7 +4,7 @@
     "local>m0sh1/infra//.github/renovate/base.json",
     "config:best-practices"
   ],
-  "enabledManagers": ["gomod", "dockerfile"],
+  "enabledManagers": ["gomod", "dockerfile", "npm"],
   "packageRules": [
     {
       "matchManagers": ["gomod"],
@@ -16,6 +16,11 @@
       "matchManagers": ["dockerfile"],
       "groupName": "Dockerfile base images",
       "labels": ["dependencies", "docker"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "Frontend dependencies",
+      "labels": ["dependencies", "frontend"]
     }
   ]
 }
