@@ -35,7 +35,7 @@ services:
         mode: '0400'
 
   db:
-    image: dhi.io/postgres:17-debian13
+    image: dhi.io/postgres:18-debian13@sha256:6d1e9ae3d7d7e4d30e06396999a631d28d21e9f4ef789a720a2fad35091df99b
     restart: unless-stopped
     environment:
       POSTGRES_USER: "wakapi"
