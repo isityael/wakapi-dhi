@@ -3,14 +3,13 @@
 'use strict'
 
 // Usage:
-// yarn add -D @iconify/json-tools @iconify/json
+// yarn add -D @iconify/json @iconify/utils
 // node bundle_icons.js
 // https://iconify.design/docs/icon-bundles/
 
 const fs = require('fs')
 const path = require('path')
-const { Collection } = require('@iconify/json-tools')
-const { locate } = require("@iconify/json");
+const { locate } = require('@iconify/json')
 
 let icons = [
     'fxemoji:key',
@@ -29,7 +28,7 @@ let icons = [
     'twemoji:light-bulb',
     'noto:play-button',
     'noto:stop-button',
-    'noto:lock',
+    'noto:locked',
     'twemoji:gear',
     'eva:corner-right-down-fill',
     'bi:heart-fill',
@@ -122,22 +121,32 @@ icons.forEach(icon => {
     }
 })
 
-// Parse each collection
-let code = ''
-Object.keys(filtered).forEach(prefix => {
-    let collection = new Collection()
-    if (!collection.loadFromFile(locate(prefix))) {
-        console.error('Error loading collection', prefix)
-        return
-    }
+async function main() {
+    const { getIcons } = await import('@iconify/utils')
 
-    code += collection.scriptify({
-        icons: filtered[prefix],
-        optimize: true,
-        pretty: pretty
+    // Parse each collection
+    let code = ''
+    Object.keys(filtered).forEach(prefix => {
+        const collection = JSON.parse(fs.readFileSync(locate(prefix), 'utf8'))
+        const iconSet = getIcons(collection, filtered[prefix], true)
+
+        if (!iconSet) {
+            throw new Error('Error loading collection ' + prefix)
+        }
+        if (iconSet.not_found !== void 0 && iconSet.not_found.length > 0) {
+            throw new Error('Missing icons in collection ' + prefix + ': ' + iconSet.not_found.join(', '))
+        }
+        delete iconSet.not_found
+
+        code += 'Iconify.addCollection(' + JSON.stringify(iconSet, null, pretty ? 4 : 0) + ');\n'
     })
-})
 
-// Save code
-fs.writeFileSync(output, code, 'utf8')
-console.log('Saved bundle to', output, ' (' + code.length + ' bytes)')
+    // Save code
+    fs.writeFileSync(output, code, 'utf8')
+    console.log('Saved bundle to', output, ' (' + code.length + ' bytes)')
+}
+
+main().catch(error => {
+    console.error(error)
+    process.exitCode = 1
+})
