@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: dhi.io/postgres:17-debian13
+    image: dhi.io/postgres:18-debian13@sha256:6d1e9ae3d7d7e4d30e06396999a631d28d21e9f4ef789a720a2fad35091df99b
     environment:
       POSTGRES_USER: "wakapi"
       POSTGRES_PASSWORD: "wakapi"
@@ -9,7 +9,7 @@ services:
     network_mode: host
 
   mysql:
-    image: dhi.io/mysql:8
+    image: dhi.io/mysql:9-debian13@sha256:44b91331060c4108eb25278c6b29318a064f2d6ef31f96a287f29748bf3bc513
     environment:
       MYSQL_TCP_PORT: 53306
       MYSQL_USER: "wakapi"
@@ -19,7 +19,7 @@ services:
     network_mode: host
 
   mariadb:
-    image: dhi.io/mariadb:11
+    image: dhi.io/mariadb:12-debian13@sha256:e7c25d0621b4f5936ca089815de7796b213793d5617e6e750ebbb3f6693f7cf7
     environment:
       MYSQL_TCP_PORT: 53306
       MARIADB_USER: "wakapi"

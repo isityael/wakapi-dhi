@@ -5,7 +5,7 @@ when:
   - event: push
     branch: master
     path:
-      include: ["**/*.go", "go.*", "Dockerfile", ".woodpecker/**"]
+      include: ["**/*.go", "go.*", "dhi/**", "vendor/**", ".woodpecker/**"]
 
 steps:
   - name: build-and-push-ghcr
@@ -14,12 +14,16 @@ steps:
     settings:
       registry: ghcr.io
       repo: ghcr.io/yaelmoshi/wakapi-dhi
-      dockerfile: Dockerfile
+      dockerfile: dhi/wakapi.yaml
       platforms: linux/amd64
+      build_args:
+        COMMIT_SHA: "${CI_COMMIT_SHA}"
       tags:
         - "${CI_COMMIT_SHA:0:8}"
-        - "2.17.3-yaelmoshi.1"
+        - "2.17.3-yaelmoshi.2"
+        - "2.17.3-yaelmoshi.2-debian13"
         - latest
+        - latest-debian13
       cache_images:
         - ghcr.io/yaelmoshi/wakapi-dhi:buildcache
       logins:
@@ -33,4 +37,5 @@ steps:
           password:
             from_secret: dhi_password
       provenance: mode=max
+      sbom: generator=dhi.io/scout-sbom-indexer:1
       buildkit_driveropt: network=host

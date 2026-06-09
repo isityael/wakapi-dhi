@@ -8,14 +8,14 @@ RUN apk upgrade --no-cache && \
     apk add --no-cache ca-certificates tzdata && update-ca-certificates
 
 COPY ./go.mod ./go.sum ./
-RUN go mod download
+COPY ./vendor ./vendor
 COPY . .
 
 ARG TARGETOS
 ARG TARGETARCH
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 GOEXPERIMENT=jsonv2 go build -ldflags "-s -w" -v -o wakapi main.go
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 GOFLAGS=-mod=vendor GOEXPERIMENT=jsonv2 go build -ldflags "-s -w" -v -o wakapi main.go
 # Need a statically linked healthcheck binary because the static runtime image does not include curl.
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -ldflags "-s -w" -v -o healthcheck scripts/healthcheck.go
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 GOFLAGS=-mod=vendor go build -ldflags "-s -w" -v -o healthcheck scripts/healthcheck.go
 
 WORKDIR /staging
 RUN mkdir ./data ./app && \
@@ -33,7 +33,7 @@ RUN mkdir ./data ./app && \
 # Note on the static runtime image:
 # Wakapi is built with CGO_ENABLED=0, so the final image only needs a minimal runtime for static binaries.
 
-FROM dhi.io/static:20230311-debian12@sha256:fd0dfde5ff8bb7d4d0686e937d7c3fff359b5cbad34e632735201713478ca002
+FROM dhi.io/static:20250419-debian13@sha256:5561af898afa6015a84d39a2cefdfc7fc386f45026d7834c95d8dbc450061563
 WORKDIR /app
 
 # See README.md and config.default.yml for all config options
