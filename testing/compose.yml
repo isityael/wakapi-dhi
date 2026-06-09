@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:17
+    image: dhi.io/postgres:17-debian13
     environment:
       POSTGRES_USER: "wakapi"
       POSTGRES_PASSWORD: "wakapi"
@@ -9,7 +9,7 @@ services:
     network_mode: host
 
   mysql:
-    image: mysql:8
+    image: dhi.io/mysql:8
     environment:
       MYSQL_TCP_PORT: 53306
       MYSQL_USER: "wakapi"
@@ -19,7 +19,7 @@ services:
     network_mode: host
 
   mariadb:
-    image: mariadb:11
+    image: dhi.io/mariadb:11
     environment:
       MYSQL_TCP_PORT: 53306
       MARIADB_USER: "wakapi"
