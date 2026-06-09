@@ -9,10 +9,10 @@
     "compress": "brotli -f static/assets/css/*.dist.css && brotli -f static/assets/js/*.dist.js"
   },
   "devDependencies": {
-    "@iconify/json": "^2.2.392",
+    "@iconify/json": "^2.2.484",
     "@iconify/json-tools": "^1.0.10",
     "chokidar-cli": "^3.0.0",
     "tailwindcss": "^4.0.0"
   },
-  "dependencies": {}
+  "dependencies": { }
 }
