@@ -35,14 +35,14 @@ services:
         mode: '0400'
 
   db:
-    image: postgres:17
+    image: dhi.io/postgres:17-debian13
     restart: unless-stopped
     environment:
       POSTGRES_USER: "wakapi"
       POSTGRES_PASSWORD_FILE: "/run/secrets/db_password"        # alternatively, set POSTGRES_PASSWORD directly without the use of secrets
       POSTGRES_DB: "wakapi"
     volumes:
-      - wakapi-db-data:/var/lib/postgresql/data
+      - wakapi-db-data:/var/lib/postgresql
     secrets:
       - db_password
 

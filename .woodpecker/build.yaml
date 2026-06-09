@@ -1,5 +1,5 @@
 # Wakapi — DHI-hardened fork
-# Builds and pushes to ghcr.io/yaelmoshi/wakapi
+# Builds and pushes to ghcr.io/yaelmoshi/wakapi-dhi
 when:
   - event: manual
   - event: push
@@ -13,7 +13,7 @@ steps:
     privileged: true
     settings:
       registry: ghcr.io
-      repo: ghcr.io/yaelmoshi/wakapi
+      repo: ghcr.io/yaelmoshi/wakapi-dhi
       dockerfile: Dockerfile
       platforms: linux/amd64
       tags:
@@ -21,7 +21,7 @@ steps:
         - "2.17.3-yaelmoshi.1"
         - latest
       cache_images:
-        - ghcr.io/yaelmoshi/wakapi:buildcache
+        - ghcr.io/yaelmoshi/wakapi-dhi:buildcache
       logins:
         - registry: ghcr.io
           username: yaelmoshi
