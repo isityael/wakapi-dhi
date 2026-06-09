@@ -60,13 +60,13 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/jinzhu/configor"
 	wakapiConfig "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	sqlite "github.com/ncruces/go-sqlite3/gormlite"
 	"github.com/schollz/progressbar/v3"
+	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -105,7 +105,7 @@ var dbSource, dbTarget *gorm.DB
 var cFlag *string
 
 func init() {
-	cfg = &config{}
+	cfg = defaultConfig()
 
 	wakapiConfig.Set(wakapiConfig.Empty())
 	wakapiConfig.Get().Db.Dialect = cfg.Source.Dialect // only required because of the "postgresTimezoneHack" in shared.go
@@ -118,7 +118,7 @@ func init() {
 	}
 	flag.Parse()
 
-	if err := configor.New(&configor.Config{}).Load(cfg, mustConfigPath()); err != nil {
+	if err := loadConfig(cfg, mustConfigPath()); err != nil {
 		log.Fatalln("failed to read config", err)
 	}
 
@@ -135,6 +135,34 @@ func init() {
 	} else {
 		dbTarget = db
 	}
+}
+
+func defaultConfig() *config {
+	return &config{
+		WithKeyValues:        true,
+		WithUsers:            true,
+		WithLeaderboard:      false,
+		WithLanguageMappings: true,
+		WithAliases:          true,
+		WithSummaries:        false,
+		WithDurations:        false,
+		WithHeartbeats:       true,
+		WithProjectLabels:    true,
+		Source: dbConfig{
+			Dialect: "mysql",
+		},
+		Target: dbConfig{
+			Dialect: "mysql",
+		},
+	}
+}
+
+func loadConfig(cfg *config, path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	return yaml.Unmarshal(data, cfg)
 }
 
 func destroy() {

@@ -2,8 +2,6 @@ package api
 
 import (
 	"fmt"
-	"github.com/duke-git/lancet/v2/maputil"
-	"github.com/duke-git/lancet/v2/slice"
 	"github.com/go-chi/chi/v5"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/middlewares"
@@ -12,8 +10,8 @@ import (
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
 	"github.com/muety/wakapi/utils"
+	"github.com/muety/wakapi/utils/badge"
 	"github.com/muety/wakapi/utils/cache"
-	"github.com/narqo/go-badge"
 	"net/http"
 	"time"
 )
@@ -86,11 +84,7 @@ func (h *BadgeHandler) Get(w http.ResponseWriter, r *http.Request) {
 		badgeData.Color = customColor
 	}
 
-	if badgeData.Color[0:1] != "#" && !slice.Contain(maputil.Keys(badge.ColorScheme), badgeData.Color) {
-		badgeData.Color = "#" + badgeData.Color
-	}
-
-	badgeSvg, err := badge.RenderBytes(badgeData.Label, badgeData.Message, badge.Color(badgeData.Color))
+	badgeSvg := badge.Render(badgeData.Label, badgeData.Message, badgeData.Color)
 	h.cache.SetDefault(cacheKey, badgeSvg)
 	respondSvg(w, badgeSvg)
 }

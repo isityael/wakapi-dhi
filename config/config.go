@@ -20,7 +20,6 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
-	"github.com/jinzhu/configor"
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
 	"github.com/robfig/cron/v3"
@@ -587,7 +586,7 @@ func Load(configFlag string, version string) *Config {
 	renameEnvVars()
 
 	config := &Config{}
-	if err := configor.New(&configor.Config{ENVPrefix: "WAKAPI"}).Load(config, configFlag); err != nil {
+	if err := loadIntoConfig(config, configFlag); err != nil {
 		Log().Fatal("failed to read config", err)
 	}
 
@@ -792,9 +791,8 @@ func renameEnvVars() {
 	// > WAKAPI_SECURITY_OIDCPROVIDERS_0_CLIENTID=<client id here>
 	// What we want instead (for consistency and beauty), rather is:
 	// > WAKAPI_OIDC_0_CLIENT_ID=<client id here>
-	// Since configor cannot parse slices with custom keys (see https://github.com/jinzhu/configor/issues/93)
-	// and neither allows to specify prefixes via tags (only the entire variable name as "env:"), we simply rename variables from the "Wakapi-style" format to what configor expects.
-	// In the long run, we might want to migrate to a different config parser (e.g. https://github.com/knadh/koanf), since configor seems to be dead.
+	// The local config loader still accepts the historical configor-style names,
+	// so we rename variables from the "Wakapi-style" format for compatibility.
 	// Also see https://github.com/muety/wakapi/issues/856.
 	var envOidcPrefix = regexp.MustCompile("WAKAPI_OIDC_PROVIDERS_(\\d+)_([A-Z_]+)")
 

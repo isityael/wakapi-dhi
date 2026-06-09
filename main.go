@@ -16,8 +16,8 @@ import (
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/lpar/gzipped/v2"
 	"github.com/muety/wakapi/utils"
+	"github.com/muety/wakapi/utils/httpgzip"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	_ "gorm.io/driver/mysql"
 	_ "gorm.io/driver/postgres"
@@ -326,7 +326,7 @@ func main() {
 	assetsStaticFs := fsutils.NewExistsHttpFS(fsutils.NewExistsFS(static).WithCache(!config.IsDev()))
 	assetsFileServer := http.FileServer(assetsStaticFs)
 	if !config.IsDev() {
-		assetsFileServer = gzipped.FileServer(assetsStaticFs)
+		assetsFileServer = httpgzip.FileServer(static)
 	}
 	staticFileServer := http.FileServer(http.FS(fsutils.NeuteredFileSystem{FS: static}))
 

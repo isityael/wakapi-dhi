@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -269,6 +270,33 @@ func (suite *ConfigTestSuite) TestPublicNetUrl() {
 	suite.NotNil(cfg.Server.PublicNetUrl)
 	suite.Equal("wakapi.dev", cfg.Server.PublicNetUrl.Hostname())
 	suite.Equal("https", cfg.Server.PublicNetUrl.Scheme)
+}
+
+func (suite *ConfigTestSuite) TestLoadMergesDefaultsYamlAndEnv() {
+	configPath := filepath.Join(suite.T().TempDir(), "config.yml")
+	err := os.WriteFile(configPath, []byte(`
+env: production
+app:
+  leaderboard_enabled: false
+db:
+  dialect: postgres
+  host: yaml-db
+server:
+  public_url: https://yaml.example
+`), 0600)
+	suite.NoError(err)
+	suite.T().Setenv("WAKAPI_DB_HOST", "env-db")
+
+	cfg := Load(configPath, "")
+
+	suite.Equal("production", cfg.Env)
+	suite.False(cfg.App.LeaderboardEnabled)
+	suite.Equal("postgres", cfg.Db.Type)
+	suite.Equal("postgres", cfg.Db.Dialect)
+	suite.Equal("env-db", cfg.Db.Host)
+	suite.Equal("wakapi_db.db", cfg.Db.Name)
+	suite.Equal("https://yaml.example", cfg.Server.PublicUrl)
+	suite.Equal(3000, cfg.Server.Port)
 }
 
 func (suite *ConfigTestSuite) TestIsImportHostWhitelisted() {
