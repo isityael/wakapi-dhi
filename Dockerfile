@@ -8,14 +8,14 @@ RUN apk upgrade --no-cache && \
     apk add --no-cache ca-certificates tzdata && update-ca-certificates
 
 COPY ./go.mod ./go.sum ./
-RUN go mod download
+COPY ./vendor ./vendor
 COPY . .
 
 ARG TARGETOS
 ARG TARGETARCH
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 GOEXPERIMENT=jsonv2 go build -ldflags "-s -w" -v -o wakapi main.go
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 GOFLAGS=-mod=vendor GOEXPERIMENT=jsonv2 go build -ldflags "-s -w" -v -o wakapi main.go
 # Need a statically linked healthcheck binary because the static runtime image does not include curl.
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -ldflags "-s -w" -v -o healthcheck scripts/healthcheck.go
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 GOFLAGS=-mod=vendor go build -ldflags "-s -w" -v -o healthcheck scripts/healthcheck.go
 
 WORKDIR /staging
 RUN mkdir ./data ./app && \

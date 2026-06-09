@@ -47,11 +47,11 @@ contents:
         - name: build wakapi
           runs: |
             set -eux -o pipefail
-            CGO_ENABLED=0 GOFLAGS=-mod=mod GOEXPERIMENT=jsonv2 go build -trimpath -ldflags "-s -w" -o "${target.dir}/app/wakapi" .
+            CGO_ENABLED=0 GOFLAGS=-mod=vendor GOEXPERIMENT=jsonv2 go build -trimpath -ldflags "-s -w" -o "${target.dir}/app/wakapi" .
         - name: build healthcheck
           runs: |
             set -eux -o pipefail
-            CGO_ENABLED=0 GOFLAGS=-mod=mod go build -trimpath -ldflags "-s -w" -o "${target.dir}/app/healthcheck" ./scripts/healthcheck.go
+            CGO_ENABLED=0 GOFLAGS=-mod=vendor go build -trimpath -ldflags "-s -w" -o "${target.dir}/app/healthcheck" ./scripts/healthcheck.go
         - name: install defaults
           runs: |
             set -eux -o pipefail
