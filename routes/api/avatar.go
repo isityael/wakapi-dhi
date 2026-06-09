@@ -1,11 +1,11 @@
 package api
 
 import (
-	"codeberg.org/Codeberg/avatars"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	conf "github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/utils"
+	"github.com/muety/wakapi/utils/avatar"
 	"github.com/muety/wakapi/utils/cache"
 	"net/http"
 	"time"
@@ -40,7 +40,7 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !h.cache.Contains(hash) {
-		h.cache.Add(hash, avatars.MakeAvatar(hash))
+		h.cache.Add(hash, avatar.Make(hash))
 	}
 	data, _ := h.cache.Get(hash)
 
