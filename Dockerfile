@@ -14,7 +14,7 @@ COPY . .
 ARG TARGETOS
 ARG TARGETARCH
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 GOEXPERIMENT=jsonv2 go build -ldflags "-s -w" -v -o wakapi main.go
-# Need a statically linked healthcheck binary because we can't use curl in a distroless image in a straightforward way
+# Need a statically linked healthcheck binary because the static runtime image does not include curl.
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH CGO_ENABLED=0 go build -ldflags "-s -w" -v -o healthcheck scripts/healthcheck.go
 
 WORKDIR /staging
@@ -30,11 +30,10 @@ RUN mkdir ./data ./app && \
 # to override config values using `-e` syntax.
 # Available options can be found in [README.md#-configuration](README.md#-configuration)
 
-# Note on the distroless image:
-# we could use `base:nonroot`, which already includes ca-certificates and tz, but that one it actually larger than alpine,
-# probably because of glibc, whereas alpine uses musl. The `static:nonroot`, doesn't include any libc implementation, because only meant for true static binaries without cgo, etc.
+# Note on the static runtime image:
+# Wakapi is built with CGO_ENABLED=0, so the final image only needs a minimal runtime for static binaries.
 
-FROM gcr.io/distroless/static:nonroot@sha256:963fa6c544fe5ce420f1f54fb88b6fb01479f054c8056d0f74cc2c6000df5240
+FROM dhi.io/static:20230311-debian12@sha256:fd0dfde5ff8bb7d4d0686e937d7c3fff359b5cbad34e632735201713478ca002
 WORKDIR /app
 
 # See README.md and config.default.yml for all config options
@@ -55,9 +54,9 @@ COPY --from=build-env --chown=nonroot:nonroot --chmod=0555 /usr/share/zoneinfo /
 COPY --from=build-env --chown=nonroot:nonroot /staging/app /app
 COPY --from=build-env --chown=nonroot:nonroot /staging/data /data
 
-LABEL org.opencontainers.image.url="https://github.com/yaelmoshi/wakapi" \
+LABEL org.opencontainers.image.url="https://github.com/yaelmoshi/wakapi-dhi" \
     org.opencontainers.image.documentation="https://github.com/muety/wakapi" \
-    org.opencontainers.image.source="https://github.com/yaelmoshi/wakapi" \
+    org.opencontainers.image.source="https://github.com/yaelmoshi/wakapi-dhi" \
     org.opencontainers.image.title="Wakapi (DHI-hardened)" \
     org.opencontainers.image.licenses="MIT" \
     org.opencontainers.image.description="Wakapi — DHI-hardened fork with bug fixes"

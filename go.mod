@@ -1,4 +1,4 @@
-module git.m0sh1.cc/m0sh1/wakapi
+module git.m0sh1.cc/m0sh1/wakapi-dhi
 
 go 1.26.4
 
