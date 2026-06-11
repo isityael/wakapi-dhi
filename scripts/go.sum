@@ -62,6 +62,8 @@ github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7Ulw
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761/go.mod h1:5TJZWKEWniPve33vlWYSoGYefn3gLQRzjfDlhSJ9ZKM=
 github.com/jackc/pgx/v5 v5.9.2 h1:3ZhOzMWnR4yJ+RW1XImIPsD1aNSz4T4fyP7zlQb56hw=
 github.com/jackc/pgx/v5 v5.9.2/go.mod h1:mal1tBGAFfLHvZzaYh77YS/eC6IX9OWbRV1QIIM0Jn4=
+github.com/jackc/pgx/v5 v5.10.0 h1:VhSvgU2jSli8o3AqIEOTJr7rZwAEUVo4E4XhR94Zfr0=
+github.com/jackc/pgx/v5 v5.10.0/go.mod h1:mal1tBGAFfLHvZzaYh77YS/eC6IX9OWbRV1QIIM0Jn4=
 github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=
 github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
@@ -80,8 +82,12 @@ github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db h1:62I3jR2Em
 github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db/go.mod h1:l0dey0ia/Uv7NcFFVbCLtqEBQbrT4OCwCSKTEv6enCw=
 github.com/ncruces/go-sqlite3 v0.34.4 h1:bp8jd1o2CMvjkrrp1lOtHDu1TdzExNWACt+piQeMwzg=
 github.com/ncruces/go-sqlite3 v0.34.4/go.mod h1:tOyhDWnzlrzflKIGw177imjuO4ZEbfOS1NJ67B1BanQ=
+github.com/ncruces/go-sqlite3 v0.35.0 h1:10wTnMpLwmhNowJ19LqHivHK3m8heBBllfFRYEXzM/U=
+github.com/ncruces/go-sqlite3 v0.35.0/go.mod h1:fXOSIkWwN5NXgbJk+7Zls8QIW4xOflmgh11OFvcY+J0=
 github.com/ncruces/go-sqlite3-wasm/v2 v2.6.35302 h1:IZCiInPIp6OhOc1skMDGOBMwMQuE1TK+QqVe35vd/ro=
 github.com/ncruces/go-sqlite3-wasm/v2 v2.6.35302/go.mod h1:ELHF6yqC51E0DiitfabHXl/aKKouCihugbhNT5a+yEY=
+github.com/ncruces/go-sqlite3-wasm/v3 v3.1.35302 h1:Cew7/eNAMd1zhpXYBjofBua/63pFvbvB2h4PM/p6gKU=
+github.com/ncruces/go-sqlite3-wasm/v3 v3.1.35302/go.mod h1:xe0CfafDUxfh+fSVKjHHMiAxoG9KALt5nFtbGNb/jRs=
 github.com/ncruces/go-sqlite3/gormlite v0.34.0 h1:QLlOy/i7OabsFUQ+d5KyXmq2hw9sMh/CRW435+eQMRY=
 github.com/ncruces/go-sqlite3/gormlite v0.34.0/go.mod h1:CMv+6YhqLmPBXYACiQtrWA0q/JLIMTKB4E65SUfLgF0=
 github.com/ncruces/julianday v1.0.0 h1:fH0OKwa7NWvniGQtxdJRxAgkBMolni2BjDHaWTxqt7M=
