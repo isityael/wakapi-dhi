@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/becheran/wildmatch-go"
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/datetime"
 	"github.com/duke-git/lancet/v2/slice"
@@ -17,6 +16,7 @@ import (
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/repositories"
+	"github.com/muety/wakapi/utils"
 	"github.com/muety/wakapi/utils/cache"
 )
 
@@ -585,9 +585,8 @@ func (srv *SummaryService) getAliasReverseResolver(user *models.User) models.Ali
 		// this is mainly used for the filtering functionality
 		// proper way would be to make the filters support wildcards as well instead
 		matchProjects := func(aliasWildcard string) []string {
-			pattern := wildmatch.NewWildMatch(aliasWildcard)
 			return slice.Filter[string](projects, func(i int, project string) bool {
-				return pattern.IsMatch(project)
+				return utils.WildcardMatch(aliasWildcard, project)
 			})
 		}
 

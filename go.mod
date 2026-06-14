@@ -3,7 +3,6 @@ module git.m0sh1.cc/m0sh1/wakapi-dhi
 go 1.26.4
 
 require (
-	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
 	github.com/alitto/pond/v2 v2.7.1
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/coreos/go-oidc/v3 v3.18.0
@@ -54,6 +53,7 @@ require (
 	github.com/go-webauthn/x v0.2.6 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/ncruces/go-sqlite3 v0.34.4 // indirect
 	github.com/ncruces/go-sqlite3-wasm/v2 v2.6.35302 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
@@ -68,7 +68,6 @@ require (
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/becheran/wildmatch-go v1.0.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-openapi/jsonpointer v0.23.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.6 // indirect
