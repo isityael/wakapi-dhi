@@ -18,14 +18,12 @@ import (
 	"log/slog"
 	"net/url"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
 	"github.com/robfig/cron/v3"
-
-	"github.com/becheran/wildmatch-go"
-	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 const (
@@ -417,7 +415,7 @@ func (c *appConfig) IsImportHostWhitelisted(host string) bool {
 		return true
 	}
 	for _, p := range c.ImportHostsWhitelist {
-		if wildmatch.NewWildMatch(p).IsMatch(host) {
+		if utils.WildcardMatch(p, host) {
 			return true
 		}
 	}
@@ -828,7 +826,7 @@ func loadSecretFiles() {
 		}
 		k, v := parts[0], parts[1]
 
-		if strings.HasSuffix(k, "_FILE") {
+		if strings.HasPrefix(k, "WAKAPI_") && strings.HasSuffix(k, "_FILE") {
 			key := strings.TrimSuffix(k, "_FILE")
 			if os.Getenv(key) != "" {
 				slog.Error("both environment variables are set (but are exclusive)", "var", key, "fileVar", k)

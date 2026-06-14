@@ -3,13 +3,13 @@ package services
 import (
 	"bytes"
 	_ "embed"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"math"
 	"sync"
 	"time"
 
-	svg "github.com/ajstarks/svgo/float"
 	"github.com/alitto/pond/v2"
 	"github.com/duke-git/lancet/v2/condition"
 	"github.com/duke-git/lancet/v2/datetime"
@@ -118,35 +118,52 @@ func (s *ActivityService) getChartPastYear(user *models.User, darkTheme, hideAtt
 
 	// regenerate svg
 	buf := &bytes.Buffer{}
-
-	canvas := svg.New(buf)
-	canvas.Start(w, h)
-	canvas.Style("text/css",
-		fmt.Sprintf("text { font-family: 'Source Sans 3', Roboto, Helvetica, Arial, sans-serif; font-size: 0.9rem; font-weight: 500; fill: %s; }", colorText),
-		fmt.Sprintf("rect { fill-opacity: 1; rx: 3px; ry: 3px; }"),
-		fmt.Sprintf("rect:hover { filter: brightness(0.9) }"),
+	fmt.Fprintf(buf, `<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f">`, w, h)
+	fmt.Fprintf(
+		buf,
+		`<style type="text/css">text { font-family: 'Source Sans 3', Roboto, Helvetica, Arial, sans-serif; font-size: 0.9rem; font-weight: 500; fill: %s; } rect { fill-opacity: 1; rx: 3px; ry: 3px; } rect:hover { filter: brightness(0.9) }</style>`,
+		colorText,
 	)
-
-	canvas.Text(0, 15, fmt.Sprintf("%s to %s", helpers.FormatDateHuman(summaries[0].FromTime.T()), helpers.FormatDateHuman(summaries[len(summaries)-1].ToTime.T())))
+	fmt.Fprintf(
+		buf,
+		`<text x="0" y="15">%s</text>`,
+		escapeSVGText(fmt.Sprintf("%s to %s", helpers.FormatDateHuman(summaries[0].FromTime.T()), helpers.FormatDateHuman(summaries[len(summaries)-1].ToTime.T()))),
+	)
 
 	for i, s := range summaries {
 		total := s.TotalTime()
 		fillColor := utils.RGBAToHex(utils.FadeColors(colorRGBAMin, colorRGBAMax, float64(total)/float64(maxTotal)))
-
-		canvas.Group()
-		canvas.Title(fmt.Sprintf("%s on %s", helpers.FmtWakatimeDuration(total), helpers.FormatDateHuman(s.FromTime.T())))
-		canvas.Rect(float64(i/gridRows)*(cellWidth+cellSpacing), 25+float64((i%gridRows)*(cellHeight+cellSpacing)), cellWidth, cellHeight, fmt.Sprintf("fill: %s", fillColor))
-		canvas.Gend()
+		title := fmt.Sprintf("%s on %s", helpers.FmtWakatimeDuration(total), helpers.FormatDateHuman(s.FromTime.T()))
+		x := float64(i/gridRows) * (cellWidth + cellSpacing)
+		y := 25 + float64((i%gridRows)*(cellHeight+cellSpacing))
+		fmt.Fprintf(
+			buf,
+			`<g><title>%s</title><rect x="%.0f" y="%.0f" width="%d" height="%d" style="fill: %s" /></g>`,
+			escapeSVGText(title),
+			x,
+			y,
+			cellWidth,
+			cellHeight,
+			fillColor,
+		)
 	}
 
 	if !hideAttribution {
-		canvas.Group()
-		canvas.Title("Wakapi.dev")
-		canvas.Image(w-60, h-24, 60, 24, "https://wakapi.dev/assets/images/logo-gh.svg")
-		canvas.Gend()
+		fmt.Fprintf(
+			buf,
+			`<g><title>Wakapi.dev</title><image x="%.0f" y="%.0f" width="60" height="24" href="https://wakapi.dev/assets/images/logo-gh.svg" /></g>`,
+			w-60,
+			h-24,
+		)
 	}
 
-	canvas.End()
+	buf.WriteString(`</svg>`)
 
 	return buf.String(), nil
+}
+
+func escapeSVGText(value string) string {
+	var escaped bytes.Buffer
+	_ = xml.EscapeText(&escaped, []byte(value))
+	return escaped.String()
 }

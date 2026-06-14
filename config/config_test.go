@@ -299,6 +299,23 @@ server:
 	suite.Equal(3000, cfg.Server.Port)
 }
 
+func (suite *ConfigTestSuite) TestLoadSecretFilesOnlyReadsWakapiVariables() {
+	tempDir := suite.T().TempDir()
+	secretPath := filepath.Join(tempDir, "salt.txt")
+	err := os.WriteFile(secretPath, []byte("test-salt\n"), 0600)
+	suite.NoError(err)
+
+	unrelatedPath := filepath.Join(tempDir, "missing.txt")
+	suite.T().Setenv("UNRELATED_FILE", unrelatedPath)
+	suite.T().Setenv("WAKAPI_PASSWORD_SALT_FILE", secretPath)
+
+	loadSecretFiles()
+
+	suite.Equal("test-salt", os.Getenv("WAKAPI_PASSWORD_SALT"))
+	suite.Equal("", os.Getenv("WAKAPI_PASSWORD_SALT_FILE"))
+	suite.Equal(unrelatedPath, os.Getenv("UNRELATED_FILE"))
+}
+
 func (suite *ConfigTestSuite) TestIsImportHostWhitelisted() {
 	testCases := []struct {
 		name      string

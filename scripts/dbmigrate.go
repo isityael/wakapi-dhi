@@ -66,7 +66,7 @@ import (
 	_ "github.com/ncruces/go-sqlite3/embed"
 	sqlite "github.com/ncruces/go-sqlite3/gormlite"
 	"github.com/schollz/progressbar/v3"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

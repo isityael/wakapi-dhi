@@ -54,7 +54,7 @@ main {
 }
 
 .imp\:cursor-not-allowed {
-    @apply cursor-not-allowed !important;
+    cursor: not-allowed !important;
 }
 
 /* Custom classes */

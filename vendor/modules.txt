@@ -5,17 +5,11 @@ filippo.io/edwards25519/field
 # github.com/KyleBanks/depth v1.2.1
 ## explicit
 github.com/KyleBanks/depth
-# github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b
-## explicit; go 1.15
-github.com/ajstarks/svgo/float
 # github.com/alitto/pond/v2 v2.7.1
 ## explicit; go 1.20
 github.com/alitto/pond/v2
 github.com/alitto/pond/v2/internal/future
 github.com/alitto/pond/v2/internal/linkedbuffer
-# github.com/becheran/wildmatch-go v1.0.0
-## explicit; go 1.15
-github.com/becheran/wildmatch-go
 # github.com/cespare/xxhash/v2 v2.3.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
@@ -203,6 +197,8 @@ github.com/jinzhu/now
 # github.com/klauspost/cpuid/v2 v2.3.0
 ## explicit; go 1.22
 github.com/klauspost/cpuid/v2
+# github.com/kr/text v0.2.0
+## explicit
 # github.com/mileusna/useragent v1.3.5
 ## explicit; go 1.14
 github.com/mileusna/useragent

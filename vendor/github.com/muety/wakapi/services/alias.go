@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/becheran/wildmatch-go"
 	datastructure "github.com/duke-git/lancet/v2/datastructure/set"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
+	"github.com/muety/wakapi/utils"
 )
 
 type AliasService struct {
@@ -82,7 +82,7 @@ func (srv *AliasService) GetAliasOrDefault(userId string, summaryType uint8, val
 	value = models.CanonicalName(value, summaryType) // currently only implemented for languages
 
 	match := func(aliasValue string, itemKey string) bool {
-		return wildmatch.NewWildMatch(aliasValue).IsMatch(itemKey)
+		return utils.WildcardMatch(aliasValue, itemKey)
 	}
 
 	if aliases, ok := userAliases.Load(userId); ok {
