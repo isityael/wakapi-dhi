@@ -22,6 +22,28 @@
       "matchManagers": ["npm"],
       "groupName": "Frontend dependencies",
       "labels": ["dependencies", "frontend"]
+    },
+    {
+      "description": "Reduce abandonment false-positives for stable or low-churn upstream dependencies",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": [
+        "github.com/cespare/xxhash/v2",
+        "github.com/dchest/captcha",
+        "github.com/emersion/go-sasl",
+        "github.com/go-chi/httprate",
+        "github.com/gorilla/schema",
+        "github.com/gorilla/securecookie",
+        "github.com/gorilla/sessions",
+        "github.com/mileusna/useragent",
+        "github.com/oauth2-proxy/mockoidc",
+        "github.com/robfig/cron/v3",
+        "github.com/stripe/stripe-go/v76",
+        "github.com/swaggo/http-swagger/v2",
+        "gorm.io/driver/mysql",
+        "gorm.io/driver/postgres",
+        "gopkg.in/yaml.v3"
+      ],
+      "abandonmentThreshold": "5 years"
     }
   ]
 }
