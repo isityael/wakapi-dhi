@@ -1,18 +1,19 @@
 {
   "scripts": {
-    "build": "npm run build:icons && npm run build:tailwind",
+    "build": "node scripts/bundle_icons.js && tailwindcss build -i static/assets/css/app.css -o static/assets/css/app.dist.css --minify",
     "build:tailwind": "tailwindcss build -i static/assets/css/app.css -o static/assets/css/app.dist.css --minify",
     "build:icons": "node scripts/bundle_icons.js",
-    "build:all:compress": "npm run build && npm run compress",
-    "watch": "node scripts/watch.js \"npm run build\"",
-    "watch:compress": "node scripts/watch.js \"npm run build:all:compress\"",
+    "build:all:compress": "node scripts/bundle_icons.js && tailwindcss build -i static/assets/css/app.css -o static/assets/css/app.dist.css --minify && brotli -f static/assets/css/*.dist.css && brotli -f static/assets/js/*.dist.js",
+    "watch": "node scripts/watch.js \"yarn run build\"",
+    "watch:compress": "node scripts/watch.js \"yarn run build:all:compress\"",
     "compress": "brotli -f static/assets/css/*.dist.css && brotli -f static/assets/js/*.dist.js"
   },
   "devDependencies": {
-    "@iconify/json": "^2.2.484",
+    "@iconify/json": "^2.2.486",
     "@iconify/utils": "^3.1.3",
-    "chokidar": "^4.0.3",
-    "tailwindcss": "^3.4.17"
+    "@tailwindcss/cli": "^4.3.1",
+    "chokidar": "^5.0.0",
+    "tailwindcss": "^4.3.1"
   },
   "dependencies": { }
 }
