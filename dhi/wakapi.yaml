@@ -19,8 +19,6 @@ vars:
   GOLANG_REFERENCE: dhi.io/golang:1.26.4-alpine3.24-dev@sha256:8c0a72d824e41949727f0907f851fff7bbd26b788d8e116facdddf84cb9f2905
   WAKAPI_VERSION: 2.17.4-yaelmoshi.2
 contents:
-  packages:
-    - "!base-files"
   builds:
     - name: wakapi
       uses: dhi.io/golang:1.26.4-alpine3.24-dev@sha256:8c0a72d824e41949727f0907f851fff7bbd26b788d8e116facdddf84cb9f2905
