@@ -303,7 +303,7 @@ You can export your Wakapi statistics to Prometheus to view them in a Grafana da
 $ export WAKAPI_EXPOSE_METRICS=true
 $ ./wakapi
 
-# 2. Get your API key and hash it
+# 2. Get your API key and base64-encode it
 $ echo "<YOUR_API_KEY>" | base64
 
 # 3. Add a Prometheus scrape config to your prometheus.yml (see below)
