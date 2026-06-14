@@ -1,29 +1,29 @@
-# syntax=dhi.io/build:2-debian13
+# syntax=dhi.io/build:2-alpine3.24
 
 name: Wakapi DHI
 image: ghcr.io/yaelmoshi/wakapi-dhi
 variant: runtime
 tags:
-  - 2.17.4-yaelmoshi.1
-  - 2.17.4-yaelmoshi.1-debian13
+  - 2.17.4-yaelmoshi.2
+  - 2.17.4-yaelmoshi.2-alpine3.24
   - latest
-  - latest-debian13
+  - latest-alpine3.24
 platforms:
   - linux/amd64
 dates:
   release: "2026-06-09"
 vars:
-  BASE_DIGEST: sha256:5561af898afa6015a84d39a2cefdfc7fc386f45026d7834c95d8dbc450061563
-  BASE_TAG: 20250419-debian13
+  BASE_DIGEST: sha256:390fea8b496568bd8e8f085ab8a1c92403d9baa047e1f82436c7874694de2c2d
+  BASE_TAG: 20260611-alpine3.24
   COMMIT_SHA: 3c342cb9ab1ac818cfacb4166d71fc4e135d415d
-  GOLANG_REFERENCE: dhi.io/golang:1.26.4-debian13-dev@sha256:9350c6e0c0a06f23b487c39850188b2a5c2bd176d1fc5ae361400c8c068e42b0
-  WAKAPI_VERSION: 2.17.4-yaelmoshi.1
+  GOLANG_REFERENCE: dhi.io/golang:1.26.4-alpine3.24-dev@sha256:8c0a72d824e41949727f0907f851fff7bbd26b788d8e116facdddf84cb9f2905
+  WAKAPI_VERSION: 2.17.4-yaelmoshi.2
 contents:
   packages:
-    - '!base-files'
+    - "!base-files"
   builds:
     - name: wakapi
-      uses: dhi.io/golang:1.26.4-debian13-dev@sha256:9350c6e0c0a06f23b487c39850188b2a5c2bd176d1fc5ae361400c8c068e42b0
+      uses: dhi.io/golang:1.26.4-alpine3.24-dev@sha256:8c0a72d824e41949727f0907f851fff7bbd26b788d8e116facdddf84cb9f2905
       work-dir: /go/src/github.com/yaelmoshi/wakapi-dhi
       caches:
         - path: /go/pkg/mod
@@ -71,7 +71,7 @@ contents:
           uid: 65532
           gid: 65532
   artifacts:
-    - name: dhi.io/static:20250419-debian13@sha256:5561af898afa6015a84d39a2cefdfc7fc386f45026d7834c95d8dbc450061563
+    - name: dhi.io/static:20260611-alpine3.24@sha256:390fea8b496568bd8e8f085ab8a1c92403d9baa047e1f82436c7874694de2c2d
       includes:
         - bin
         - etc
@@ -87,7 +87,7 @@ contents:
         - etc/group
         - etc/os-release
         - etc/passwd
-        - var/lib/dpkg/status
+        - lib/apk/db/installed
       uid: 0
       gid: 0
 accounts:
@@ -102,11 +102,10 @@ accounts:
       members:
         - nonroot
 os-release:
-  name: Docker Hardened Images (Debian)
-  id: debian
-  version-id: "13"
-  version-codename: trixie
-  pretty-name: Docker Hardened Images/Debian GNU/Linux 13 (trixie)
+  name: Docker Hardened Images (Alpine)
+  id: alpine
+  version-id: "3.24"
+  pretty-name: Docker Hardened Images/Alpine Linux v3.24
   home-url: https://docker.com/products/hardened-images/
   bug-report-url: https://docker.com/support/
 work-dir: /app

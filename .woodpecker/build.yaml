@@ -18,10 +18,10 @@ steps:
       platforms: linux/amd64
       tags:
         - "${CI_COMMIT_SHA:0:8}"
-        - "2.17.4-yaelmoshi.1"
-        - "2.17.4-yaelmoshi.1-debian13"
+        - "2.17.4-yaelmoshi.2"
+        - "2.17.4-yaelmoshi.2-alpine3.24"
         - latest
-        - latest-debian13
+        - latest-alpine3.24
       cache_images:
         - ghcr.io/yaelmoshi/wakapi-dhi:buildcache
       logins:
