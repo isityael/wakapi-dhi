@@ -1,4 +1,3 @@
-const chokidar = require("chokidar");
 const { spawn } = require("node:child_process");
 
 const buildCommand = process.argv.slice(2).join(" ").trim();
@@ -39,14 +38,24 @@ function runBuild() {
   });
 }
 
-chokidar
-  .watch(watchPaths, {
-    ignoreInitial: true,
-    ignored,
-  })
-  .on("all", (event, path) => {
-    console.log(`[watch] ${event}: ${path}`);
-    runBuild();
-  });
+async function main() {
+  const chokidarModule = await import("chokidar");
+  const chokidar = chokidarModule.default ?? chokidarModule;
 
-console.log("[watch] waiting for changes");
+  chokidar
+    .watch(watchPaths, {
+      ignoreInitial: true,
+      ignored,
+    })
+    .on("all", (event, path) => {
+      console.log(`[watch] ${event}: ${path}`);
+      runBuild();
+    });
+
+  console.log("[watch] waiting for changes");
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
