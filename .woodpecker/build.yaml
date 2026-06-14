@@ -36,4 +36,6 @@ steps:
             from_secret: dhi_password
       provenance: mode=max
       sbom: generator=dhi.io/scout-sbom-indexer:1
-      buildkit_driveropt: network=host
+      custom_dns:
+        - 1.1.1.1
+        - 9.9.9.9
