@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	github.com/alitto/pond/v2 v2.7.1
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/coreos/go-oidc/v3 v3.18.0
+	github.com/coreos/go-oidc/v3 v3.19.0
 	github.com/dchest/captcha v1.1.0
 	github.com/descope/virtualwebauthn v1.0.5
 	github.com/duke-git/lancet/v2 v2.3.9
