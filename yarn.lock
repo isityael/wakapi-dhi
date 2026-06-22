@@ -33,9 +33,9 @@
     tslib "^2.4.0"
 
 "@iconify/json@^2.2.486":
-  version "2.2.488"
-  resolved "https://registry.yarnpkg.com/@iconify/json/-/json-2.2.488.tgz#30de89f2c22792a3c9febc9bece69bbe72cfd7e7"
-  integrity sha512-W2MfGS0n1GugWhQn7SLgRKNH1JonVsKG/O9vO/htP7j3k1bGt54R1mbN9uaZlQ99uCCu65IR5UgQM66E8Cm+Fw==
+  version "2.2.489"
+  resolved "https://registry.yarnpkg.com/@iconify/json/-/json-2.2.489.tgz#873f62854d6da49ce8e84a3a4310923190851c05"
+  integrity sha512-KkgFv48FLPmIvex3fl5sCr1zcKV+Q4leIgk8TNnRx0j1S326+78NnTTy3DjArwyX6eNwaQutDKy4dzmpjRnOFg==
   dependencies:
     "@iconify/types" "*"
     pathe "^2.0.3"
