@@ -22,7 +22,7 @@ require (
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.4.0
 	github.com/mileusna/useragent v1.3.5
-	github.com/muety/wakapi v0.0.0-20260528120935-26c2e4e0fa48
+	github.com/muety/wakapi v0.0.0-20260622100447-ad62267988f6
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/robfig/cron/v3 v3.0.1
