@@ -5,7 +5,7 @@ go 1.26.4
 replace github.com/muety/wakapi => ..
 
 require (
-	github.com/muety/wakapi v0.0.0-20260528120935-26c2e4e0fa48
+	github.com/muety/wakapi v0.0.0-20260622100447-ad62267988f6
 	github.com/ncruces/go-sqlite3 v0.35.1
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/schollz/progressbar/v3 v3.19.0
@@ -19,7 +19,7 @@ require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/alitto/pond/v2 v2.7.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/coreos/go-oidc/v3 v3.18.0 // indirect
+	github.com/coreos/go-oidc/v3 v3.19.0 // indirect
 	github.com/dchest/captcha v1.1.0 // indirect
 	github.com/duke-git/lancet/v2 v2.3.9 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
