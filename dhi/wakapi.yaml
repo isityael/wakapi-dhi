@@ -1,7 +1,7 @@
 # syntax=dhi.io/build:2-alpine3.24
 
 name: Wakapi DHI
-image: ghcr.io/yaelmoshi/wakapi-dhi
+image: ghcr.io/isityael/wakapi-dhi
 variant: runtime
 tags:
   - 2.17.4-yaelmoshi.2
@@ -22,22 +22,22 @@ contents:
   builds:
     - name: wakapi
       uses: dhi.io/golang:1.26.4-alpine3.24-dev@sha256:8c0a72d824e41949727f0907f851fff7bbd26b788d8e116facdddf84cb9f2905
-      work-dir: /go/src/github.com/yaelmoshi/wakapi-dhi
+      work-dir: /go/src/github.com/isityael/wakapi-dhi
       caches:
         - path: /go/pkg/mod
       contents:
         packages:
           - sed
         files:
-          - url: git+https://github.com/yaelmoshi/wakapi-dhi.git#${COMMIT_SHA}
+          - url: git+https://github.com/isityael/wakapi-dhi.git#${COMMIT_SHA}
             checksum: ${COMMIT_SHA}
-            path: /go/src/github.com/yaelmoshi/wakapi-dhi
+            path: /go/src/github.com/isityael/wakapi-dhi
             spdx:
               name: wakapi-dhi
               version: ${WAKAPI_VERSION}
               packages:
                 - name: wakapi
-                  purl: pkg:golang/github.com/yaelmoshi/wakapi-dhi@${WAKAPI_VERSION}
+                  purl: pkg:golang/github.com/isityael/wakapi-dhi@${WAKAPI_VERSION}
                   license: MIT
             uid: 0
             gid: 0
@@ -124,9 +124,9 @@ annotations:
   org.opencontainers.image.documentation: https://github.com/muety/wakapi
   org.opencontainers.image.licenses: MIT
   org.opencontainers.image.revision: ${COMMIT_SHA}
-  org.opencontainers.image.source: https://github.com/yaelmoshi/wakapi-dhi
+  org.opencontainers.image.source: https://github.com/isityael/wakapi-dhi
   org.opencontainers.image.title: Wakapi DHI
-  org.opencontainers.image.url: https://github.com/yaelmoshi/wakapi-dhi
+  org.opencontainers.image.url: https://github.com/isityael/wakapi-dhi
   org.opencontainers.image.version: ${WAKAPI_VERSION}
 entrypoint:
   - /app/wakapi
