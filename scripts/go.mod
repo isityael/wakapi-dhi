@@ -8,7 +8,7 @@ require (
 	github.com/muety/wakapi v0.0.0-20260622100447-ad62267988f6
 	github.com/ncruces/go-sqlite3 v0.35.1
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
-	github.com/schollz/progressbar/v3 v3.19.0
+	github.com/schollz/progressbar/v3 v3.19.1
 	go.yaml.in/yaml/v3 v3.0.4
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/postgres v1.6.0
