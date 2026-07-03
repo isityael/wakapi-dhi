@@ -5,7 +5,7 @@ when:
   - event: push
     branch: master
     path:
-      include: ["**/*.go", "go.*", "vendor/**", "dhi/**", ".woodpecker/**"]
+      include: ["**/*.go", "go.*", "vendor/**", "dhi/**"]
 
 steps:
   - name: build-and-push-ghcr
