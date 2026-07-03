@@ -1,0 +1,36 @@
+# Wakapi PR/push test workflow.
+when:
+  - event: pull_request
+  - event: push
+
+steps:
+  - name: unit-and-api-tests
+    image: golang:1.26.4-bookworm
+    environment:
+      CGO_ENABLED: "0"
+      GOEXPERIMENT: jsonv2
+      GOFLAGS: -mod=vendor
+    commands:
+      - apt-get update
+      - apt-get install -y --no-install-recommends ca-certificates curl gnupg sqlite3 unzip
+      - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+      - apt-get install -y --no-install-recommends nodejs
+      - npm install -g @usebruno/cli@2.15.0
+      - go test $(go list ./... | grep -v 'github.com/muety/wakapi/scripts')
+      - ./testing/run_api_tests.sh sqlite
+
+  - name: mail-tests
+    image: golang:1.26.4-bookworm
+    environment:
+      CGO_ENABLED: "0"
+      GOFLAGS: -mod=vendor
+      WAKAPI_TEST_EXTERNAL_SMTP4DEV: "1"
+      WAKAPI_TEST_SMTP4DEV_API_URL: http://smtp4dev/api
+      WAKAPI_TEST_SMTP4DEV_HOST: smtp4dev
+      WAKAPI_TEST_SMTP4DEV_PORT: "25"
+    commands:
+      - ./testing/run_mail_tests.sh
+
+services:
+  - name: smtp4dev
+    image: rnwood/smtp4dev:latest
