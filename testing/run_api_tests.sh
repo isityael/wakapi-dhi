@@ -2,6 +2,7 @@
 set -o nounset -o pipefail -o errexit
 
 DB_TYPE=${1-sqlite}
+USE_EXTERNAL_DB=${WAKAPI_TEST_EXTERNAL_DB:-0}
 
 if ! command -v bru &> /dev/null; then
     echo "Bruno CLI could not be found. Run 'npm install -g @usebruno/cli' first."
@@ -22,7 +23,7 @@ script_dir=$(dirname "$script_path")
 export TZ=${TZ:-Europe/Berlin}
 
 echo "Compiling."
-(cd "$script_dir/.." || exit 1; CGO_ENABLED=0 go build)
+(cd "$script_dir/.." || exit 1; CGO_ENABLED=0 go build -o wakapi)
 
 cd "$script_dir" || exit 1
 
@@ -46,34 +47,58 @@ cleanup() {
 }
 trap cleanup EXIT
 
+wait_for_tcp() {
+    local host=$1
+    local port=$2
+
+    echo "Waiting for $host:$port ..."
+    for _ in $(seq 1 60); do
+        if bash -c "</dev/tcp/$host/$port" 2> /dev/null; then
+            return 0
+        fi
+        sleep 1
+    done
+
+    echo "Timed out waiting for $host:$port"
+    return 1
+}
+
 # Initialise test data
 case $DB_TYPE in
     postgres|mysql|mariadb|cockroach)
-    docker compose -f "$script_dir/compose.yml" down
-
-    docker_down=1
-    docker compose -f "$script_dir/compose.yml" up --wait --detach "$DB_TYPE"
-
     config="config.$DB_TYPE.yml"
     if [ "$DB_TYPE" == "mariadb" ]; then
         config="config.mysql.yml"
     fi
 
-    db_port=0
-    if [ "$DB_TYPE" == "postgres" ]; then
-        db_port=55432
-    elif [ "$DB_TYPE" == "cockroach" ]; then
-        db_port=56257
+    if [ "$USE_EXTERNAL_DB" -eq 1 ]; then
+        db_host=${WAKAPI_DB_HOST:-$DB_TYPE}
+        if [ "$DB_TYPE" == "postgres" ]; then
+            db_port=${WAKAPI_DB_PORT:-5432}
+        elif [ "$DB_TYPE" == "cockroach" ]; then
+            db_port=${WAKAPI_DB_PORT:-26257}
+        else
+            db_port=${WAKAPI_DB_PORT:-3306}
+        fi
+        export WAKAPI_DB_HOST=$db_host
+        export WAKAPI_DB_PORT=$db_port
     else
-        db_port=53306
+        docker compose -f "$script_dir/compose.yml" down
+
+        docker_down=1
+        docker compose -f "$script_dir/compose.yml" up --wait --detach "$DB_TYPE"
+
+        db_host=127.0.0.1
+        if [ "$DB_TYPE" == "postgres" ]; then
+            db_port=55432
+        elif [ "$DB_TYPE" == "cockroach" ]; then
+            db_port=56257
+        else
+            db_port=53306
+        fi
     fi
 
-    for _ in $(seq 0 30); do
-        if netstat -tulpn 2>/dev/null | grep "LISTEN" | tr -s ' ' | cut -d' ' -f4 | grep -E ":$db_port$" > /dev/null; then
-            break
-        fi
-        sleep 1
-    done
+    wait_for_tcp "$db_host" "$db_port"
     ;;
 
     sqlite|*)

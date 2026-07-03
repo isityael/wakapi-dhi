@@ -15,6 +15,8 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -53,7 +55,7 @@ func (suite *SmtpTestSuite) BeforeTest(suiteName, testName string) {
 }
 
 func TestSmtpTestSuite(t *testing.T) {
-	address := net.JoinHostPort(Smtp4DevHost, fmt.Sprintf("%d", Smtp4DevPort))
+	address := net.JoinHostPort(smtp4DevHost(), fmt.Sprintf("%d", smtp4DevPort()))
 	conn, err := net.DialTimeout("tcp", address, time.Second)
 	if err != nil {
 		t.Skipf("WARNING: smtp4Dev not available at %s - skipping smtp tests", address)
@@ -136,8 +138,8 @@ func createTestMail() *models.Mail {
 
 func createDefaultSMTPConfig() config.SMTPMailConfig {
 	return config.SMTPMailConfig{
-		Host:       Smtp4DevHost,
-		Port:       Smtp4DevPort,
+		Host:       smtp4DevHost(),
+		Port:       smtp4DevPort(),
 		Username:   TestSmtpUser,
 		Password:   TestSmtpPass,
 		TLS:        false,
@@ -151,8 +153,32 @@ type Smtp4DevClient struct {
 
 func newSmtp4DevClient() *Smtp4DevClient {
 	return &Smtp4DevClient{
-		ApiBaseUrl: Smtp4DevApiUrl,
+		ApiBaseUrl: smtp4DevApiUrl(),
 	}
+}
+
+func smtp4DevApiUrl() string {
+	if value := os.Getenv("WAKAPI_TEST_SMTP4DEV_API_URL"); value != "" {
+		return value
+	}
+	return Smtp4DevApiUrl
+}
+
+func smtp4DevHost() string {
+	if value := os.Getenv("WAKAPI_TEST_SMTP4DEV_HOST"); value != "" {
+		return value
+	}
+	return Smtp4DevHost
+}
+
+func smtp4DevPort() uint {
+	if value := os.Getenv("WAKAPI_TEST_SMTP4DEV_PORT"); value != "" {
+		port, err := strconv.ParseUint(value, 10, 16)
+		if err == nil {
+			return uint(port)
+		}
+	}
+	return Smtp4DevPort
 }
 
 func (c *Smtp4DevClient) Check() error {

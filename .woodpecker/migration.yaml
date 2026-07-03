@@ -1,0 +1,66 @@
+# Wakapi migration test workflow.
+when:
+  - event: pull_request
+  - event: push
+
+matrix:
+  DB_TYPE:
+    - sqlite
+    - postgres
+    - mysql
+    - mariadb
+
+steps:
+  - name: migration-tests
+    image: golang:1.26.4-bookworm
+    environment:
+      CGO_ENABLED: "0"
+      GOEXPERIMENT: jsonv2
+      GOFLAGS: -mod=vendor
+      WAKAPI_TEST_EXTERNAL_DB: "1"
+    commands:
+      - apt-get update
+      - apt-get install -y --no-install-recommends ca-certificates curl gnupg sqlite3 unzip
+      - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+      - apt-get install -y --no-install-recommends nodejs
+      - npm install -g @usebruno/cli@2.15.0
+      - |
+        case "$DB_TYPE" in
+          postgres)
+            export WAKAPI_DB_HOST=postgres
+            export WAKAPI_DB_PORT=5432
+            ;;
+          mysql)
+            export WAKAPI_DB_HOST=mysql
+            export WAKAPI_DB_PORT=3306
+            ;;
+          mariadb)
+            export WAKAPI_DB_HOST=mariadb
+            export WAKAPI_DB_PORT=3306
+            ;;
+        esac
+        ./testing/run_api_tests.sh "$DB_TYPE" --migration
+
+services:
+  - name: postgres
+    image: postgres:18
+    environment:
+      POSTGRES_USER: wakapi
+      POSTGRES_PASSWORD: wakapi
+      POSTGRES_DB: wakapi
+
+  - name: mysql
+    image: mysql:9
+    environment:
+      MYSQL_USER: wakapi
+      MYSQL_PASSWORD: wakapi
+      MYSQL_DATABASE: wakapi
+      MYSQL_ROOT_PASSWORD: example
+
+  - name: mariadb
+    image: mariadb:12
+    environment:
+      MARIADB_USER: wakapi
+      MARIADB_PASSWORD: wakapi
+      MARIADB_DATABASE: wakapi
+      MARIADB_ROOT_PASSWORD: example
