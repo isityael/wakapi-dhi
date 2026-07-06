@@ -6,7 +6,7 @@ replace github.com/muety/wakapi => ..
 
 require (
 	github.com/muety/wakapi v0.0.0-20260703070800-2493da214f2e
-	github.com/ncruces/go-sqlite3 v0.35.1
+	github.com/ncruces/go-sqlite3 v0.35.2
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/schollz/progressbar/v3 v3.19.1
 	go.yaml.in/yaml/v3 v3.0.4
@@ -44,7 +44,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mileusna/useragent v1.3.5 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
-	github.com/ncruces/go-sqlite3-wasm/v3 v3.1.35302 // indirect
+	github.com/ncruces/go-sqlite3-wasm/v3 v3.2.35303 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -61,5 +61,5 @@ require (
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/term v0.44.0 // indirect
-	golang.org/x/text v0.38.0 // indirect
+	golang.org/x/text v0.39.0 // indirect
 )
