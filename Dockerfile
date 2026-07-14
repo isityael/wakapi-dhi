@@ -1,5 +1,5 @@
 # renovate: datasource=docker
-ARG GO_BASE=dhi.io/golang:1.26.5-alpine3.24-dev@sha256:1afddcf6d8f4069fe80f66637066878228878ba0c09f52c1dd7969d3a7411998
+ARG GO_BASE=dhi.io/golang:1.26.5-alpine3.24-dev@sha256:711ea0b8f09f549c50f2f550dc26859d3e6441ca11d5640caecf69c29a862f0c
 
 FROM --platform=$BUILDPLATFORM ${GO_BASE} AS build-env
 WORKDIR /src
@@ -33,7 +33,7 @@ RUN mkdir ./data ./app && \
 # Note on the static runtime image:
 # Wakapi is built with CGO_ENABLED=0, so the final image only needs a minimal runtime for static binaries.
 
-FROM dhi.io/static:20260611-alpine3.24@sha256:390fea8b496568bd8e8f085ab8a1c92403d9baa047e1f82436c7874694de2c2d
+FROM dhi.io/static:20260611-alpine3.24@sha256:93568eb7c673afb3ad79b15cca341469d3e02cf859caae1049aa22fe7fbce90a
 WORKDIR /app
 
 # See README.md and config.default.yml for all config options
