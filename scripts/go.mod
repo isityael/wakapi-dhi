@@ -5,7 +5,7 @@ go 1.26.4
 replace github.com/muety/wakapi => ..
 
 require (
-	github.com/muety/wakapi v0.0.0-20260703070800-2493da214f2e
+	github.com/muety/wakapi v0.0.0-20260717131030-b12a58144228
 	github.com/ncruces/go-sqlite3 v0.35.2
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/schollz/progressbar/v3 v3.19.1
@@ -19,11 +19,11 @@ require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/alitto/pond/v2 v2.7.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/coreos/go-oidc/v3 v3.19.0 // indirect
+	github.com/coreos/go-oidc/v3 v3.20.0 // indirect
 	github.com/dchest/captcha v1.1.0 // indirect
 	github.com/duke-git/lancet/v2 v2.3.9 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
-	github.com/getsentry/sentry-go v0.47.0 // indirect
+	github.com/getsentry/sentry-go v0.48.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-sql-driver/mysql v1.10.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
@@ -55,11 +55,11 @@ require (
 	github.com/samber/slog-sentry/v2 v2.11.0 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
-	golang.org/x/sync v0.21.0 // indirect
-	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/term v0.44.0 // indirect
-	golang.org/x/text v0.39.0 // indirect
+	golang.org/x/sync v0.22.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/term v0.45.0 // indirect
+	golang.org/x/text v0.40.0 // indirect
 )
