@@ -1,4 +1,4 @@
-# syntax=dhi.io/build:2-alpine3.24
+# syntax=dhi.io/build:2-alpine3.24@sha256:1d0f4fff350f7b03e160bc7d6651609c448240ea8fc08e3714c19e2f64c91c81
 
 name: Wakapi DHI
 image: ghcr.io/isityael/wakapi-dhi
@@ -26,6 +26,8 @@ contents:
       caches:
         - path: /go/pkg/mod
       contents:
+        packages:
+          - sed
         files:
           - url: git+https://github.com/isityael/wakapi-dhi.git#${COMMIT_SHA}
             checksum: ${COMMIT_SHA}
@@ -52,12 +54,8 @@ contents:
           runs: |
             set -eux -o pipefail
             mkdir -p "${target.dir}/app" "${target.dir}/data"
-            while IFS= read -r line; do
-              case "$line" in
-                *"listen_ipv6: ::1"*) printf '%s\n' '  listen_ipv6: "-"                    # set to '\''-'\'' to disable ipv6' ;;
-                *) printf '%s\n' "$line" ;;
-              esac
-            done < config.default.yml > "${target.dir}/app/config.yml"
+            cp config.default.yml "${target.dir}/app/config.yml"
+            sed -i 's/listen_ipv6: ::1/listen_ipv6: "-"/g' "${target.dir}/app/config.yml"
             chmod 0555 "${target.dir}/app/wakapi" "${target.dir}/app/healthcheck"
             chmod 0444 "${target.dir}/app/config.yml"
             chown -R 65532:65532 "${target.dir}/app" "${target.dir}/data"
