@@ -26,11 +26,11 @@ contents:
       caches:
         - path: /go/pkg/mod
       contents:
-        # DHI build:2 requires a non-empty package set. Keep this aligned with
-        # the certificate bundle already present in the pinned static image;
-        # unlike sed, it does not pull a conflicting busybox-binsh package.
+        # DHI build:2 requires a package that is not already in the builder.
+        # libmd is a small, dependency-safe frontend seed; unlike sed, it only
+        # depends on musl and does not pull a conflicting busybox-binsh package.
         packages:
-          - ca-certificates-bundle=20260611-r0
+          - libmd=1.2.0-r0
         files:
           - url: git+https://github.com/isityael/wakapi-dhi.git#${COMMIT_SHA}
             checksum: ${COMMIT_SHA}
