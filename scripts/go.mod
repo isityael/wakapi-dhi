@@ -5,7 +5,7 @@ go 1.26.4
 replace github.com/muety/wakapi => ..
 
 require (
-	github.com/muety/wakapi v0.0.0-20260717131030-b12a58144228
+	github.com/muety/wakapi v0.0.0-20260722211946-9694701bd3f5
 	github.com/ncruces/go-sqlite3 v0.35.2
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/schollz/progressbar/v3 v3.19.1
