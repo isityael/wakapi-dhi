@@ -6,6 +6,7 @@
     ":preserveSemverRanges"
   ],
   "enabledManagers": ["gomod", "dockerfile", "npm"],
+  "postUpdateOptions": ["gomodTidy"],
   "packageRules": [
     {
       "matchManagers": ["gomod"],
