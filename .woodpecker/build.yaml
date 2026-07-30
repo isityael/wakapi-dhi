@@ -17,11 +17,9 @@ steps:
       dockerfile: dhi/wakapi.yaml
       platforms: linux/amd64
       tags:
-        - "${CI_COMMIT_SHA:0:8}"
-        - "2.17.4-yaelmoshi.2"
-        - "2.17.4-yaelmoshi.2-alpine3.24"
-        - latest
-        - latest-alpine3.24
+        - "candidate-${CI_COMMIT_SHA}"
+      build_args:
+        COMMIT_SHA: "${CI_COMMIT_SHA}"
       cache_images:
         - ghcr.io/isityael/wakapi-dhi:buildcache
       logins:
@@ -36,3 +34,33 @@ steps:
             from_secret: dhi_password
       provenance: mode=max
       sbom: generator=dhi.io/scout-sbom-indexer:1
+
+  - name: scan-candidate
+    image: dhi.io/trivy:0.71.2-alpine3.24-dev@sha256:111c2d07f6a936c6429f5bb551899cdd662917b754ae5effcdd45c447cb5b5ab
+    environment:
+      TRIVY_USERNAME: isityael
+      TRIVY_PASSWORD:
+        from_secret: github_token
+    commands:
+      - trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed "ghcr.io/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
+
+  - name: promote-release
+    image: dhi.io/crane:0.21.7-debian13-dev@sha256:5c8e6a602d0c668812c6645de88af5b1d69c1a1faa4b05facecd6678371f38b7
+    environment:
+      GHCR_USERNAME: isityael
+      GHCR_TOKEN:
+        from_secret: github_token
+    commands:
+      - printf '%s' "$${GHCR_TOKEN}" | crane auth login ghcr.io -u "$${GHCR_USERNAME}" --password-stdin
+      - candidate="ghcr.io/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
+      - short_sha="$$(printf '%s' "$${CI_COMMIT_SHA}" | cut -c1-8)"
+      - |
+        for alias in \
+          "$${short_sha}" \
+          "2.17.4-yaelmoshi.2" \
+          "2.17.4-yaelmoshi.2-alpine3.24" \
+          latest \
+          latest-alpine3.24
+        do
+          crane copy "$${candidate}" "ghcr.io/isityael/wakapi-dhi:$${alias}"
+        done

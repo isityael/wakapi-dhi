@@ -5,7 +5,7 @@ when:
 
 steps:
   - name: unit-and-api-tests
-    image: golang:1.26.4-bookworm
+    image: golang:1.26.5-bookworm
     environment:
       CGO_ENABLED: "0"
       GOEXPERIMENT: jsonv2
@@ -20,7 +20,7 @@ steps:
       - ./testing/run_api_tests.sh sqlite
 
   - name: mail-tests
-    image: golang:1.26.4-bookworm
+    image: golang:1.26.5-bookworm
     environment:
       CGO_ENABLED: "0"
       GOFLAGS: -mod=vendor
