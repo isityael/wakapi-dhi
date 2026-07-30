@@ -9,7 +9,7 @@ require (
 	github.com/ncruces/go-sqlite3 v0.35.2
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/schollz/progressbar/v3 v3.19.1
-	go.yaml.in/yaml/v3 v3.0.4
+	go.yaml.in/yaml/v3 v3.0.5
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.2
@@ -29,7 +29,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-webauthn/webauthn v0.17.4 // indirect
 	github.com/go-webauthn/x v0.2.6 // indirect
-	github.com/gofrs/uuid/v5 v5.4.0 // indirect
+	github.com/gofrs/uuid/v5 v5.5.0 // indirect
 	github.com/gohugoio/hashstructure v0.6.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
