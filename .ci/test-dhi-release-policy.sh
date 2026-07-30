@@ -5,6 +5,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 definition="${repo_root}/dhi/wakapi.yaml"
 gomod="${repo_root}/go.mod"
 pipeline="${repo_root}/.woodpecker/build.yaml"
+ci_pipeline="${repo_root}/.woodpecker/ci.yaml"
 
 grep -Eq 'dhi\.io/golang:1\.26\.[5-9]-alpine3\.24-dev@sha256:' "${definition}" || {
   echo "DHI build must use a Go release containing the CVE-2026-39822 fix" >&2
@@ -40,5 +41,16 @@ grep -Fq 'name: promote-release' "${pipeline}" || {
   echo "release pipeline must promote aliases only after the scan passes" >&2
   exit 1
 }
+
+grep -Fq '".woodpecker/build.yaml"' "${pipeline}" || {
+  echo "release pipeline changes must trigger their own validation build" >&2
+  exit 1
+}
+
+grep -Fq '.ci/test-migration-workflow.sh' "${ci_pipeline}" \
+  && grep -Fq '.ci/test-dhi-release-policy.sh' "${ci_pipeline}" || {
+    echo "CI must enforce the checked-in workflow policy tests" >&2
+    exit 1
+  }
 
 echo "DHI release security policy passed"
