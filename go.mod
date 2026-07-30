@@ -1,6 +1,6 @@
 module git.m0sh1.cc/m0sh1/wakapi-dhi
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/alitto/pond/v2 v2.7.1

@@ -4,15 +4,17 @@ when:
   - event: push
 
 matrix:
-  DB_TYPE:
-    - sqlite
-    - postgres
-    - mysql
-    - mariadb
+  include:
+    - DB_TYPE: postgres
+      DB_IMAGE: postgres:18
+    - DB_TYPE: mysql
+      DB_IMAGE: mysql:9
+    - DB_TYPE: mariadb
+      DB_IMAGE: mariadb:12
 
 steps:
   - name: migration-tests
-    image: golang:1.26.4-bookworm
+    image: golang:1.26.5-bookworm
     environment:
       CGO_ENABLED: "0"
       GOEXPERIMENT: jsonv2
@@ -27,39 +29,40 @@ steps:
       - |
         case "$DB_TYPE" in
           postgres)
-            export WAKAPI_DB_HOST=postgres
+            export WAKAPI_DB_HOST=database
             export WAKAPI_DB_PORT=5432
             ;;
           mysql)
-            export WAKAPI_DB_HOST=mysql
+            export WAKAPI_DB_HOST=database
             export WAKAPI_DB_PORT=3306
             ;;
           mariadb)
-            export WAKAPI_DB_HOST=mariadb
+            export WAKAPI_DB_HOST=database
             export WAKAPI_DB_PORT=3306
             ;;
         esac
         ./testing/run_api_tests.sh "$DB_TYPE" --migration
+    backend_options:
+      kubernetes:
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
 
 services:
-  - name: postgres
-    image: postgres:18
+  - name: database
+    image: ${DB_IMAGE}
     environment:
       POSTGRES_USER: wakapi
       POSTGRES_PASSWORD: wakapi
       POSTGRES_DB: wakapi
-
-  - name: mysql
-    image: mysql:9
-    environment:
       MYSQL_USER: wakapi
       MYSQL_PASSWORD: wakapi
       MYSQL_DATABASE: wakapi
       MYSQL_ROOT_PASSWORD: example
-
-  - name: mariadb
-    image: mariadb:12
-    environment:
       MARIADB_USER: wakapi
       MARIADB_PASSWORD: wakapi
       MARIADB_DATABASE: wakapi

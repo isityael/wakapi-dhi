@@ -1,0 +1,28 @@
+# Wakapi SQLite migration test workflow. SQLite needs no service container.
+when:
+  - event: pull_request
+  - event: push
+
+steps:
+  - name: sqlite-migration-tests
+    image: golang:1.26.5-bookworm
+    environment:
+      CGO_ENABLED: "0"
+      GOEXPERIMENT: jsonv2
+      GOFLAGS: -mod=vendor
+    commands:
+      - apt-get update
+      - apt-get install -y --no-install-recommends ca-certificates curl gnupg sqlite3 unzip
+      - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+      - apt-get install -y --no-install-recommends nodejs
+      - npm install -g @usebruno/cli@2.15.0
+      - ./testing/run_api_tests.sh sqlite --migration
+    backend_options:
+      kubernetes:
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
