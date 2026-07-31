@@ -1,6 +1,6 @@
 module git.m0sh1.cc/m0sh1/wakapi-dhi/scripts
 
-go 1.26.4
+go 1.26.5
 
 replace github.com/muety/wakapi => ..
 
@@ -11,7 +11,7 @@ require (
 	github.com/schollz/progressbar/v3 v3.19.1
 	go.yaml.in/yaml/v3 v3.0.5
 	gorm.io/driver/mysql v1.6.0
-	gorm.io/driver/postgres v1.6.0
+	gorm.io/driver/postgres v1.6.2
 	gorm.io/gorm v1.31.2
 )
 
