@@ -197,13 +197,11 @@ github.com/jinzhu/now
 # github.com/klauspost/cpuid/v2 v2.3.0
 ## explicit; go 1.22
 github.com/klauspost/cpuid/v2
-# github.com/kr/text v0.2.0
-## explicit
 # github.com/mileusna/useragent v1.3.5
 ## explicit; go 1.14
 github.com/mileusna/useragent
 # github.com/muety/wakapi v0.0.0-20260722211946-9694701bd3f5 => .
-## explicit; go 1.26.4
+## explicit; go 1.26.5
 github.com/muety/wakapi/config
 github.com/muety/wakapi/data
 github.com/muety/wakapi/helpers
@@ -246,8 +244,6 @@ github.com/ncruces/go-sqlite3/internal/sqlite3_wrap
 github.com/ncruces/go-sqlite3/internal/testenv
 github.com/ncruces/go-sqlite3/internal/util
 github.com/ncruces/go-sqlite3/vfs
-# github.com/ncruces/go-sqlite3-wasm/v2 v2.6.35302
-## explicit; go 1.25.0
 # github.com/ncruces/go-sqlite3-wasm/v3 v3.1.35302
 ## explicit; go 1.25.0
 github.com/ncruces/go-sqlite3-wasm/v3
@@ -396,8 +392,8 @@ gopkg.in/yaml.v3
 # gorm.io/driver/mysql v1.6.0
 ## explicit; go 1.18
 gorm.io/driver/mysql
-# gorm.io/driver/postgres v1.6.0
-## explicit; go 1.20
+# gorm.io/driver/postgres v1.6.2
+## explicit; go 1.25.0
 gorm.io/driver/postgres
 # gorm.io/gorm v1.31.2
 ## explicit; go 1.18
