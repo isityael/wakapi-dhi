@@ -16,7 +16,7 @@ require (
 	github.com/go-chi/httprate v0.16.0
 	github.com/go-webauthn/webauthn v0.17.4
 	github.com/gofrs/uuid/v5 v5.5.0
-	github.com/gohugoio/hashstructure v0.6.0
+	github.com/gohugoio/hashstructure v1.0.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/gorilla/schema v1.4.1
 	github.com/gorilla/securecookie v1.1.2
