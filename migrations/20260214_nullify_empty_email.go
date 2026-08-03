@@ -36,7 +36,13 @@ func init() {
 
 			// drop old index so it can be recreated as unique
 			if db.Migrator().HasIndex(&models.User{}, "idx_user_email") {
-				if err := db.Migrator().DropIndex(&models.User{}, "idx_user_email"); err != nil {
+				var err error
+				if db.Dialector.Name() == "postgres" {
+					err = db.Exec(`DROP INDEX IF EXISTS "idx_user_email"`).Error
+				} else {
+					err = db.Migrator().DropIndex(&models.User{}, "idx_user_email")
+				}
+				if err != nil {
 					slog.Error("failed to drop index idx_user_email", "error", err)
 					return err
 				}
