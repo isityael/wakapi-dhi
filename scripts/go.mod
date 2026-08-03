@@ -5,7 +5,7 @@ go 1.26.5
 replace github.com/muety/wakapi => ..
 
 require (
-	github.com/muety/wakapi v0.0.0-20260722211946-9694701bd3f5
+	github.com/muety/wakapi v0.0.0-20260803125425-7434d37653c2
 	github.com/ncruces/go-sqlite3 v0.35.2
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/schollz/progressbar/v3 v3.19.1
@@ -30,7 +30,7 @@ require (
 	github.com/go-webauthn/webauthn v0.17.4 // indirect
 	github.com/go-webauthn/x v0.2.6 // indirect
 	github.com/gofrs/uuid/v5 v5.5.0 // indirect
-	github.com/gohugoio/hashstructure v0.6.0 // indirect
+	github.com/gohugoio/hashstructure v1.0.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
