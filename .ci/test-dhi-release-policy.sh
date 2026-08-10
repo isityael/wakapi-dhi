@@ -47,6 +47,11 @@ grep -Fq 'name: sign-candidate' "${pipeline}" || {
   exit 1
 }
 
+grep -Fq 'cosign login ghcr.io' "${pipeline}" || {
+  echo "release pipeline must authenticate Cosign before uploading signatures" >&2
+  exit 1
+}
+
 grep -Eq 'WAKAPI_VERSION=.*dhi/wakapi\.yaml' "${pipeline}" || {
   echo "release aliases must come from the DHI definition" >&2
   exit 1
