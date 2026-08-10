@@ -47,6 +47,7 @@ steps:
   - name: sign-candidate
     image: dhi.io/cosign:3.1.2-alpine3.24-dev@sha256:28bd97f1efc751593b4d75d4d92880353bf77ee43f8db391f704b699b7cce43e
     environment:
+      COSIGN_EXPERIMENTAL: "1"
       COSIGN_KEY:
         from_secret: cosign_key
       COSIGN_PASSWORD:
