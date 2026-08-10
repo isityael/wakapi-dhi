@@ -44,6 +44,18 @@ steps:
     commands:
       - trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed "ghcr.io/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
 
+  - name: sign-candidate
+    image: dhi.io/cosign:3.1.2-alpine3.24-dev@sha256:28bd97f1efc751593b4d75d4d92880353bf77ee43f8db391f704b699b7cce43e
+    environment:
+      COSIGN_KEY:
+        from_secret: cosign_key
+      COSIGN_PASSWORD:
+        from_secret: cosign_password
+    commands:
+      - printf '%s' "$${COSIGN_KEY}" > /tmp/cosign.key
+      - cosign sign --key /tmp/cosign.key --yes --registry-referrers-mode=oci-1-1 "ghcr.io/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
+      - rm -f /tmp/cosign.key
+
   - name: promote-release
     image: dhi.io/crane:0.21.7-debian13-dev@sha256:5c8e6a602d0c668812c6645de88af5b1d69c1a1faa4b05facecd6678371f38b7
     environment:
@@ -54,11 +66,13 @@ steps:
       - printf '%s' "$${GHCR_TOKEN}" | crane auth login ghcr.io -u "$${GHCR_USERNAME}" --password-stdin
       - candidate="ghcr.io/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
       - short_sha="$$(printf '%s' "$${CI_COMMIT_SHA}" | cut -c1-8)"
+      - WAKAPI_VERSION="$$(sed -n 's/^[[:space:]]*WAKAPI_VERSION:[[:space:]]*//p' dhi/wakapi.yaml | head -n 1)"
+      - test -n "$${WAKAPI_VERSION}"
       - |
         for alias in \
           "$${short_sha}" \
-          "2.17.4-yaelmoshi.2" \
-          "2.17.4-yaelmoshi.2-alpine3.24" \
+          "$${WAKAPI_VERSION}" \
+          "$${WAKAPI_VERSION}-alpine3.24" \
           latest \
           latest-alpine3.24
         do

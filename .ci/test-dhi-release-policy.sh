@@ -42,6 +42,21 @@ grep -Fq 'name: promote-release' "${pipeline}" || {
   exit 1
 }
 
+grep -Fq 'name: sign-candidate' "${pipeline}" || {
+  echo "release pipeline must sign the scanned candidate" >&2
+  exit 1
+}
+
+grep -Eq 'WAKAPI_VERSION=.*dhi/wakapi\.yaml' "${pipeline}" || {
+  echo "release aliases must come from the DHI definition" >&2
+  exit 1
+}
+
+if grep -Fq '"2.17.4-yaelmoshi.2"' "${pipeline}"; then
+  echo "release pipeline must not hard-code a stale Wakapi alias" >&2
+  exit 1
+fi
+
 grep -Fq '".woodpecker/build.yaml"' "${pipeline}" || {
   echo "release pipeline changes must trigger their own validation build" >&2
   exit 1
