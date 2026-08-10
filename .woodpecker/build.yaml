@@ -1,5 +1,5 @@
 # Wakapi — DHI-hardened fork
-# Builds and pushes to ghcr.io/isityael/wakapi-dhi
+# Builds, scans, signs, and promotes ghcr.io/isityael/wakapi-dhi releases.
 when:
   - event: manual
   - event: push
