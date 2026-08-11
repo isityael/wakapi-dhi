@@ -1,11 +1,8 @@
 # Wakapi — DHI-hardened fork
 # Builds, scans, signs, and promotes ghcr.io/isityael/wakapi-dhi releases.
 when:
-  - event: manual
-  - event: push
-    branch: master
-    path:
-      include: [".woodpecker/build.yaml", "**/*.go", "go.*", "vendor/**", "dhi/**"]
+  - event: tag
+    ref: refs/tags/v*-ym.*
 
 steps:
   - name: build-and-push-ghcr
@@ -20,8 +17,8 @@ steps:
         - "candidate-${CI_COMMIT_SHA}"
       build_args:
         COMMIT_SHA: "${CI_COMMIT_SHA}"
-      cache_images:
-        - ghcr.io/isityael/wakapi-dhi:buildcache
+      cache_from: 'type=registry\,ref=ghcr.io/isityael/wakapi-dhi:buildcache'
+      cache_to: 'type=registry,ref=ghcr.io/isityael/wakapi-dhi:buildcache,mode=max,ignore-error=true'
       logins:
         - registry: ghcr.io
           username: isityael
@@ -73,6 +70,7 @@ steps:
       - short_sha="$$(printf '%s' "$${CI_COMMIT_SHA}" | cut -c1-8)"
       - WAKAPI_VERSION="$$(sed -n 's/^[[:space:]]*WAKAPI_VERSION:[[:space:]]*//p' dhi/wakapi.yaml | head -n 1)"
       - test -n "$${WAKAPI_VERSION}"
+      - crane copy "$${candidate}" "ghcr.io/isityael/wakapi-dhi:${CI_COMMIT_TAG}"
       - |
         for alias in \
           "$${short_sha}" \
