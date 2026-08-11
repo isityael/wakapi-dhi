@@ -6,6 +6,8 @@ definition="${repo_root}/dhi/wakapi.yaml"
 gomod="${repo_root}/go.mod"
 pipeline="${repo_root}/.woodpecker/build.yaml"
 ci_pipeline="${repo_root}/.woodpecker/ci.yaml"
+validate_pipeline="${repo_root}/.woodpecker/validate.yaml"
+tag_workflow="${repo_root}/.forgejo/workflows/release-tag.yaml"
 
 grep -Eq 'dhi\.io/golang:1\.26\.[5-9]-alpine3\.24-dev@sha256:' "${definition}" || {
   echo "DHI build must use a Go release containing the CVE-2026-39822 fix" >&2
@@ -62,8 +64,10 @@ if grep -Fq '"2.17.4-yaelmoshi.2"' "${pipeline}"; then
   exit 1
 fi
 
-grep -Fq '".woodpecker/build.yaml"' "${pipeline}" || {
-  echo "release pipeline changes must trigger their own validation build" >&2
+grep -Fq 'event: tag' "${pipeline}" \
+  && grep -Fq 'ci/woodpecker/push/validate' "${tag_workflow}" \
+  && grep -Fq 'event: push' "${validate_pipeline}" || {
+  echo "release publication must be triggered by a success-gated Forgejo tag" >&2
   exit 1
 }
 

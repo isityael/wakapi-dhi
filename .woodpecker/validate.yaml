@@ -1,0 +1,50 @@
+when:
+  - event: push
+    branch: master
+  - event: pull_request
+
+steps:
+  - name: restore-go-cache
+    image: plugins/cache:1.10@sha256:6a5cf9cf3813e9b5a554f56dbc9c073cb24463b7bddd5b10e25790d732e68938
+    failure: ignore
+    settings:
+      access_key: {from_secret: garage_s3_access_key}
+      secret_key: {from_secret: garage_s3_secret_key}
+      restore: true
+      backend: s3
+      endpoint: http://garage.garage.svc.cluster.local:3900
+      bucket: buildkit-cache
+      region: garage
+      path_style: true
+      archive_format: zstd
+      cache_key: 'woodpecker/wakapi-dhi/go/amd64/go1.26-{{ checksum "go.sum" }}'
+      mount: [.go-mod-cache]
+
+  - name: validate-release-inputs
+    image: dhi.io/golang:1.26.5-debian13-dev@sha256:4f8306e798384952c56c754db2ef72f075413a73a0bcf512890fe43d58f315de
+    environment:
+      GOMODCACHE: ${CI_WORKSPACE}/.go-mod-cache
+    commands:
+      - mkdir -p "$${GOMODCACHE}"
+      - test -n "$(sed -n 's/^[[:space:]]*WAKAPI_VERSION:[[:space:]]*//p' dhi/wakapi.yaml | head -1)"
+      - go mod verify
+      - go test ./...
+
+  - name: rebuild-go-cache
+    image: plugins/cache:1.10@sha256:6a5cf9cf3813e9b5a554f56dbc9c073cb24463b7bddd5b10e25790d732e68938
+    failure: ignore
+    when:
+      - event: push
+        branch: master
+    settings:
+      access_key: {from_secret: garage_s3_access_key}
+      secret_key: {from_secret: garage_s3_secret_key}
+      rebuild: true
+      backend: s3
+      endpoint: http://garage.garage.svc.cluster.local:3900
+      bucket: buildkit-cache
+      region: garage
+      path_style: true
+      archive_format: zstd
+      cache_key: 'woodpecker/wakapi-dhi/go/amd64/go1.26-{{ checksum "go.sum" }}'
+      mount: [.go-mod-cache]
