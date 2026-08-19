@@ -9,8 +9,8 @@ ci_pipeline="${repo_root}/.woodpecker/ci.yaml"
 validate_pipeline="${repo_root}/.woodpecker/validate.yaml"
 tag_workflow="${repo_root}/.forgejo/workflows/release-tag.yaml"
 
-grep -Eq 'dhi\.io/golang:1\.26\.[5-9]-alpine3\.24-dev@sha256:' "${definition}" || {
-  echo "DHI build must use a Go release containing the CVE-2026-39822 fix" >&2
+grep -Eq 'dhi\.io/golang:1\.26\.[6-9]-alpine3\.24-dev@sha256:' "${definition}" || {
+  echo "DHI build must use Go 1.26.6 or newer for the current Go vulnerability fixes" >&2
   exit 1
 }
 
