@@ -5,7 +5,7 @@ go 1.26.5
 replace github.com/muety/wakapi => ..
 
 require (
-	github.com/muety/wakapi v0.0.0-20260808092525-1a08af5f78d4
+	github.com/muety/wakapi v0.0.0-20260818162036-ce91eac2c2d9
 	github.com/ncruces/go-sqlite3 v0.35.3
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/schollz/progressbar/v3 v3.19.1
@@ -55,11 +55,11 @@ require (
 	github.com/samber/slog-sentry/v2 v2.11.0 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/crypto v0.54.0 // indirect
+	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/term v0.45.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 )
