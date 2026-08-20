@@ -21,7 +21,6 @@ steps:
       tags:
         - "candidate-${CI_COMMIT_SHA}"
       cache_from: 'type=registry\,ref=ghcr.io/isityael/wakapi-dhi:buildcache'
-      cache_to: 'type=registry,ref=ghcr.io/isityael/wakapi-dhi:buildcache,mode=max,ignore-error=true'
       logins:
         - registry: ghcr.io
           username: isityael
