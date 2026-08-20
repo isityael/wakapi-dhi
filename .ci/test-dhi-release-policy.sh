@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 definition="${repo_root}/dhi/wakapi.yaml"
+dockerfile="${repo_root}/Dockerfile"
 gomod="${repo_root}/go.mod"
 pipeline="${repo_root}/.woodpecker/build.yaml"
 ci_pipeline="${repo_root}/.woodpecker/ci.yaml"
@@ -13,6 +14,14 @@ grep -Eq 'dhi\.io/golang:1\.26\.[6-9]-alpine3\.24-dev@sha256:' "${definition}" |
   echo "DHI build must use Go 1.26.6 or newer for the current Go vulnerability fixes" >&2
   exit 1
 }
+
+dockerfile_go_reference="$(sed -n 's/^ARG GO_BASE=//p' "${dockerfile}" | head -n 1)"
+definition_go_reference="$(sed -n 's/^[[:space:]]*GOLANG_REFERENCE:[[:space:]]*//p' "${definition}" | head -n 1)"
+test -n "${dockerfile_go_reference}" \
+  && test "${dockerfile_go_reference}" = "${definition_go_reference}" || {
+    echo "Dockerfile and native DHI definition must pin the same Go image" >&2
+    exit 1
+  }
 
 if grep -RFn '1.26.4' "${repo_root}/.woodpecker" "${gomod}"; then
   echo "CI and module metadata must not retain the vulnerable Go 1.26.4 toolchain" >&2
