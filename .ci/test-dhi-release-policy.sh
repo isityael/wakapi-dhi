@@ -73,6 +73,11 @@ if ! grep -Fq '.ci/prepare-dhi-release-definition.sh dhi/wakapi.yaml .ci/wakapi-
   exit 1
 fi
 
+if grep -Eq '^[[:space:]]*cache_to:' "${pipeline}"; then
+  echo "release pipeline must not block artifact promotion on an optional registry cache export" >&2
+  exit 1
+fi
+
 grep -Fq 'name: scan-candidate' "${pipeline}" || {
   echo "release pipeline must scan the candidate before promotion" >&2
   exit 1
