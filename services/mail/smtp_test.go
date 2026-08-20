@@ -11,8 +11,10 @@ $ docker run --rm -it -p 5000:80 -p 2525:25 -p 8080:80 rnwood/smtp4Dev
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -29,11 +31,13 @@ import (
 )
 
 const (
-	TestSmtpUser   = "admin"
-	TestSmtpPass   = "admin"
-	Smtp4DevApiUrl = "http://localhost:8080/api"
-	Smtp4DevHost   = "localhost"
-	Smtp4DevPort   = 2525
+	TestSmtpUser         = "admin"
+	TestSmtpPass         = "admin"
+	Smtp4DevApiUrl       = "http://localhost:8080/api"
+	Smtp4DevHost         = "localhost"
+	Smtp4DevPort         = 2525
+	smtpReadinessRetries = 30
+	smtpReadinessDelay   = time.Second
 )
 
 type SmtpTestSuite struct {
@@ -73,6 +77,31 @@ func TestSmtpTestSuite(t *testing.T) {
 	}
 
 	suite.Run(t, new(SmtpTestSuite))
+}
+
+func TestRetrySmtpReadiness(t *testing.T) {
+	attempts := 0
+	err := retrySmtpReadiness(3, 0, func() error {
+		attempts++
+		if attempts < 3 {
+			return fmt.Errorf("SMTP listener is still restarting")
+		}
+		return nil
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, 3, attempts)
+}
+
+func TestRetrySmtpReadinessTimesOut(t *testing.T) {
+	attempts := 0
+	err := retrySmtpReadiness(2, 0, func() error {
+		attempts++
+		return fmt.Errorf("SMTP protocol not ready")
+	})
+
+	assert.EqualError(t, err, "SMTP protocol not ready after 2 attempts: SMTP protocol not ready")
+	assert.Equal(t, 2, attempts)
 }
 
 func (suite *SmtpTestSuite) TestSMTPSendingService_SendPlain() {
@@ -200,6 +229,9 @@ func (c *Smtp4DevClient) Setup() error {
 	if err := c.SetConfigValue("deliverMessagesToUsersDefaultMailbox", false); err != nil {
 		return err
 	}
+	if err := c.waitForSmtpMode(false); err != nil {
+		return err
+	}
 
 	if err := c.CreateTestUsers(); err != nil {
 		return err
@@ -250,36 +282,40 @@ func (c *Smtp4DevClient) CountMessages() (int, error) {
 
 func (c *Smtp4DevClient) SetNoTls() error {
 	slog.Info("[smtp4Dev] disabling tls encryption")
-	err := c.SetConfigValue("tlsMode", "None")
-	time.Sleep(2 * time.Second)
-	return err
+	if err := c.SetConfigValue("tlsMode", "None"); err != nil {
+		return err
+	}
+	return c.waitForSmtpMode(false)
 }
 
 func (c *Smtp4DevClient) SetForcedTls() error {
 	slog.Info("[smtp4Dev] enabling forced tls encryption")
-	err := c.SetConfigValue("tlsMode", "ImplicitTls")
-	time.Sleep(2 * time.Second)
-	return err
+	if err := c.SetConfigValue("tlsMode", "ImplicitTls"); err != nil {
+		return err
+	}
+	return c.waitForSmtpMode(true)
 }
 
 func (c *Smtp4DevClient) SetStartTls() error {
 	slog.Info("[smtp4Dev] enabling tls encryption via starttls")
-	err := c.SetConfigValue("tlsMode", "StartTls")
-	time.Sleep(2 * time.Second)
-	return err
+	if err := c.SetConfigValue("tlsMode", "StartTls"); err != nil {
+		return err
+	}
+	return c.waitForSmtpMode(false)
 }
 
 func (c *Smtp4DevClient) CreateTestUsers() error {
 	slog.Info("[smtp4Dev] creating test users")
-	err := c.SetConfigValue("users", []map[string]interface{}{
+	if err := c.SetConfigValue("users", []map[string]interface{}{
 		{
 			"username":       TestSmtpUser,
 			"password":       TestSmtpPass,
 			"defaultMailbox": "Default",
 		},
-	})
-	time.Sleep(100 * time.Millisecond)
-	return err
+	}); err != nil {
+		return err
+	}
+	return c.waitForSmtpMode(false)
 }
 
 func (c *Smtp4DevClient) ClearInboxes() error {
@@ -313,6 +349,51 @@ func (c *Smtp4DevClient) SetConfigValue(key string, val interface{}) error {
 		return err
 	}
 
-	time.Sleep(5 * time.Second) // server will restart to load config changes
 	return nil
+}
+
+func (c *Smtp4DevClient) waitForSmtpMode(implicitTLS bool) error {
+	address := net.JoinHostPort(smtp4DevHost(), fmt.Sprintf("%d", smtp4DevPort()))
+	return retrySmtpReadiness(smtpReadinessRetries, smtpReadinessDelay, func() error {
+		dialer := &net.Dialer{Timeout: time.Second}
+		if implicitTLS {
+			conn, err := tls.DialWithDialer(dialer, "tcp", address, &tls.Config{ //nolint:gosec // smtp4dev uses a self-signed test certificate
+				InsecureSkipVerify: true,
+			})
+			if err != nil {
+				return err
+			}
+			return conn.Close()
+		}
+
+		conn, err := dialer.Dial("tcp", address)
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
+		if err := conn.SetReadDeadline(time.Now().Add(time.Second)); err != nil {
+			return err
+		}
+		banner := make([]byte, 4)
+		if _, err := io.ReadFull(conn, banner); err != nil {
+			return err
+		}
+		if !bytes.Equal(banner, []byte("220 ")) {
+			return fmt.Errorf("unexpected SMTP banner %q", banner)
+		}
+		return nil
+	})
+}
+
+func retrySmtpReadiness(attempts int, delay time.Duration, probe func() error) error {
+	var lastErr error
+	for attempt := 1; attempt <= attempts; attempt++ {
+		if lastErr = probe(); lastErr == nil {
+			return nil
+		}
+		if attempt < attempts {
+			time.Sleep(delay)
+		}
+	}
+	return fmt.Errorf("SMTP protocol not ready after %d attempts: %w", attempts, lastErr)
 }
