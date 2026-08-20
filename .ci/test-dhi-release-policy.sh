@@ -57,6 +57,11 @@ grep -Eq 'golang\.org/x/text v0\.(39|[4-9][0-9])\.' "${gomod}" || {
   exit 1
 }
 
+grep -Eq 'golang\.org/x/mod v0\.([4-9][0-9])\.' "${gomod}" || {
+  echo "Wakapi must vendor golang.org/x/mod 0.40.0 or newer for the current module verification fixes" >&2
+  exit 1
+}
+
 grep -Fq 'candidate-${CI_COMMIT_SHA}' "${pipeline}" || {
   echo "release pipeline must publish an isolated candidate tag" >&2
   exit 1
