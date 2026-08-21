@@ -85,7 +85,7 @@ func (suite *UserServiceTestSuite) TestUserService_GetByKeyFromCache_Success() {
 	userCached := &models.User{ID: TestUserID, ApiKey: "cached-key"}
 
 	userCache := cache.New(cache.NoExpiration, cache.NoExpiration)
-	userCache.SetDefault("key_"+TestAPIKey, userCached)
+	userCache.SetDefault("key_false_"+TestAPIKey, userCached)
 
 	sut := &UserService{cache: userCache}
 
@@ -187,4 +187,22 @@ func (suite *UserServiceTestSuite) TestUserService_GetUserByOidc_CachesSubjectMa
 	suite.NoError(err)
 	suite.Equal(user, second)
 	suite.UserRepo.AssertNumberOfCalls(suite.T(), "FindOne", 1)
+}
+
+func (suite *UserServiceTestSuite) TestUserService_GetUserByKey_DoesNotPromoteCachedReadOnlyKey() {
+	const readOnlyKey = "read-only-additional-key"
+
+	suite.UserRepo.On("FindOne", models.User{ApiKey: readOnlyKey}).Return(nil, errors.New("not found")).Twice()
+	suite.ApiKeyService.On("GetByApiKey", readOnlyKey, false).Return(&models.ApiKey{User: suite.TestUser, ReadOnly: true}, nil).Once()
+	suite.ApiKeyService.On("GetByApiKey", readOnlyKey, true).Return(nil, errors.New("full access key required")).Once()
+
+	sut := NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo)
+
+	readUser, err := sut.GetUserByKey(readOnlyKey, false)
+	suite.NoError(err)
+	suite.Equal(suite.TestUser, readUser)
+
+	writeUser, err := sut.GetUserByKey(readOnlyKey, true)
+	suite.Nil(writeUser)
+	suite.EqualError(err, "full access key required")
 }
