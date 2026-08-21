@@ -229,6 +229,7 @@ github.com/muety/wakapi/utils/badge
 github.com/muety/wakapi/utils/cache
 github.com/muety/wakapi/utils/fs
 github.com/muety/wakapi/utils/httpgzip
+github.com/muety/wakapi/utils/test
 github.com/muety/wakapi/views
 github.com/muety/wakapi/views/mail
 # github.com/ncruces/go-sqlite3 v0.35.0

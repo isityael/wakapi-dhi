@@ -4,20 +4,20 @@ name: Wakapi DHI
 image: ghcr.io/isityael/wakapi-dhi
 variant: runtime
 tags:
-  - 2.17.4-yaelmoshi.2
-  - 2.17.4-yaelmoshi.2-alpine3.24
+  - 2.17.6-yaelmoshi.1
+  - 2.17.6-yaelmoshi.1-alpine3.24
   - latest
   - latest-alpine3.24
 platforms:
   - linux/amd64
 dates:
-  release: "2026-06-09"
+  release: "2026-08-21"
 vars:
   BASE_DIGEST: sha256:390fea8b496568bd8e8f085ab8a1c92403d9baa047e1f82436c7874694de2c2d
   BASE_TAG: 20260611-alpine3.24
   COMMIT_SHA: 7c0df0cce3ed904e61dbe44d5c74354971dd6020
   GOLANG_REFERENCE: dhi.io/golang:1.26.7-alpine3.24-dev@sha256:0c00bda6cdb72ae77877aae5b9abb1033c34a51bc0aa1e66e5808b864158098b
-  WAKAPI_VERSION: 2.17.4-yaelmoshi.2
+  WAKAPI_VERSION: 2.17.6-yaelmoshi.1
 contents:
   builds:
     - name: wakapi
@@ -127,7 +127,7 @@ environment:
   WAKAPI_LISTEN_IPV4: 0.0.0.0
   WAKAPI_PASSWORD_SALT: ""
 annotations:
-  org.opencontainers.image.created: "2026-06-09T00:00:00Z"
+  org.opencontainers.image.created: "2026-08-21T00:00:00Z"
   org.opencontainers.image.documentation: https://github.com/muety/wakapi
   org.opencontainers.image.licenses: MIT
   org.opencontainers.image.revision: ${COMMIT_SHA}

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
@@ -32,14 +31,6 @@ type IdTokenPayload struct {
 	ProviderName      string                 `json:"provider_name"` // custom field, not part of actual id token response
 	AllClaims         map[string]interface{} `json:"-"`
 	UsernameClaim     string                 `json:"-"`
-}
-
-func (token *IdTokenPayload) Exp() time.Time {
-	return time.Unix(token.Expiry, 0)
-}
-
-func (token *IdTokenPayload) IsValid() bool {
-	return token.Exp().After(time.Now())
 }
 
 func (token *IdTokenPayload) Username() string {
@@ -96,9 +87,9 @@ func RegisterOidcProvider(providerCfg *oidcProviderConfig) {
 		return
 	}
 
-	scopes := []string{oidc.ScopeOpenID, "profile", "email"}
+	scopes := []string{oidc.ScopeOpenID, oidc.ScopeProfile, oidc.ScopeEmail}
 	for _, s := range providerCfg.Scopes {
-		if s != oidc.ScopeOpenID && s != "profile" && s != "email" {
+		if s != oidc.ScopeOpenID && s != oidc.ScopeProfile && s != oidc.ScopeEmail {
 			scopes = append(scopes, s)
 		}
 	}
