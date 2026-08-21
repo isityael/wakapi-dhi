@@ -9,6 +9,12 @@
   "postUpdateOptions": ["gomodTidy"],
   "packageRules": [
     {
+      "description": "The upstream Wakapi module is replaced by this checkout; source updates are merged from upstream tags",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": ["github.com/muety/wakapi"],
+      "enabled": false
+    },
+    {
       "matchManagers": ["gomod"],
       "groupName": "Go dependencies",
       "automerge": true,

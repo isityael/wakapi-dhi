@@ -18,15 +18,19 @@ import (
 )
 
 const (
-	UserKey               = "user"
-	ImprintKey            = "imprint"
-	AuthCookieKey         = config.CookieKeyAuth
-	PersistentIntervalKey = "wakapi_summary_interval"
+	UserKey                   = "user"
+	ImprintKey                = "imprint"
+	AuthCookieKey             = config.CookieKeyAuth
+	OidcIdTokenCookieKey      = config.CookieKeyOidcIdToken
+	OidcRefreshTokenCookieKey = config.CookieKeyOidcRefreshToken
+	OidcProviderCookieKey     = config.CookieKeyOidcProvider
+	PersistentIntervalKey     = "wakapi_summary_interval"
 )
 
 var (
 	hacksInitialized     bool
 	postgresTimezoneHack bool
+	sqliteMode           bool
 )
 
 type KeyStringValue struct {
@@ -48,6 +52,10 @@ type KeyedInterval struct {
 type CustomTime time.Time
 
 func (j CustomTime) GormDBDataType(db *gorm.DB, field *schema.Field) string {
+	if strings.HasPrefix(db.Dialector.Name(), "sqlite") {
+		return "integer" // unix epoch milliseconds for correct timezone-agnostic comparison (see #882, #960)
+	}
+
 	t := "timestamp"
 
 	if db.Config.Dialector.Name() == (postgres.Dialector{}).Name() {
@@ -78,36 +86,47 @@ func (j *CustomTime) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func initHacks() {
+	postgresTimezoneHack = config.Get().Db.IsPostgres()
+	sqliteMode = config.Get().Db.IsSQLite()
+	hacksInitialized = true
+}
+
 func (j *CustomTime) Scan(value interface{}) error {
 	var (
 		t   time.Time
 		err error
 	)
 
-	switch value.(type) {
+	if !hacksInitialized {
+		initHacks()
+	}
+
+	switch v := value.(type) {
+	case int64:
+		t = time.UnixMilli(v)
+	case float64:
+		t = time.UnixMilli(int64(v))
 	case string:
-		// this is only for safety / backwards compatibility, because, the driver itself should already properly parse dates
-		// however, that's not always guaranteed across SQLite drivers.
-		t, err = time.Parse("2006-01-02 15:04:05-07:00", value.(string)) // legacy SQLite timestamp format
+		// this is only for safety / backwards compatibility, because drivers do not always parse dates themselves.
+		t, err = time.Parse("2006-01-02 15:04:05-07:00", v) // legacy SQLite timestamp format
 		if err != nil {
-			t, err = time.Parse(time.RFC3339, value.(string)) // iso format used by ncruces/go-sqlite3 driver and others
+			t, err = time.Parse(time.RFC3339, v) // iso format used by ncruces/go-sqlite3 driver and others
+		}
+		if err != nil {
+			t, err = time.Parse("2006-01-02 15:04:05", v) // format without timezone offset (formerly used by SQL fixtures)
 		}
 		if err != nil {
 			return errors.New(fmt.Sprintf("unsupported date time format: %s", value))
 		}
 	case time.Time:
-		t = value.(time.Time)
-		break
+		t = v
 	default:
 		return errors.New(fmt.Sprintf("unsupported type: %T", value))
 	}
 
 	// see https://github.com/muety/wakapi/issues/771
 	// -> "reinterpret" postgres dates (received as UTC) in local zone, assuming they had also originally been inserted as such
-	if !hacksInitialized {
-		postgresTimezoneHack = config.Get().Db.IsPostgres()
-		hacksInitialized = true
-	}
 	if postgresTimezoneHack {
 		t = utils.SetZone(t, time.Local)
 	}
@@ -119,7 +138,15 @@ func (j *CustomTime) Scan(value interface{}) error {
 }
 
 func (j CustomTime) Value() (driver.Value, error) {
-	return j.T().Round(time.Millisecond), nil
+	if !hacksInitialized {
+		initHacks()
+	}
+
+	t := j.T().Round(time.Millisecond)
+	if sqliteMode {
+		return t.UnixMilli(), nil
+	}
+	return t, nil
 }
 
 func (j *CustomTime) Hash() (uint64, error) {

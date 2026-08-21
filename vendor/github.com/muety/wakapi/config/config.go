@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -43,12 +44,14 @@ const (
 	KeyInviteCode                   = "invite"
 	KeySharedData                   = "shared_data"
 
-	CookieKeySession               = "wakapi_session"
-	CookieKeyAuth                  = "wakapi_auth"
-	SessionValueOidcState          = "oidc_state"
-	SessionValueOidcIdTokenPayload = "oidc_id_token"
-	SessionValueWebAuthn           = "webauthn_session"
-	SessionValueWebAuthnExpiresAt  = "webauthn_session_expires_at"
+	CookieKeySession              = "wakapi_session"
+	CookieKeyAuth                 = "wakapi_auth"
+	CookieKeyOidcIdToken          = "oidc_id_token"
+	CookieKeyOidcRefreshToken     = "oidc_refresh_token"
+	CookieKeyOidcProvider         = "oidc_provider"
+	SessionValueOidcState         = "oidc_state"
+	SessionValueWebAuthn          = "webauthn_session"
+	SessionValueWebAuthnExpiresAt = "webauthn_session_expires_at"
 
 	SimpleDateFormat     = "2006-01-02"
 	SimpleDateTimeFormat = "2006-01-02 15:04:05"
@@ -133,19 +136,19 @@ type securityConfig struct {
 	EnableProxy      bool `yaml:"enable_proxy" default:"false" env:"WAKAPI_ENABLE_PROXY"` // only intended for production instance at wakapi.dev
 	DisableFrontpage bool `yaml:"disable_frontpage" default:"false" env:"WAKAPI_DISABLE_FRONTPAGE"`
 	// this is actually a pepper (https://en.wikipedia.org/wiki/Pepper_(cryptography))
-	PasswordSalt                 string                     `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
-	InsecureCookies              bool                       `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
-	CookieMaxAgeSec              int                        `yaml:"cookie_max_age" default:"172800" env:"WAKAPI_COOKIE_MAX_AGE"`
-	TrustedHeaderAuth            bool                       `yaml:"trusted_header_auth" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH"`
-	TrustedHeaderAuthKey         string                     `yaml:"trusted_header_auth_key" default:"Remote-User" env:"WAKAPI_TRUSTED_HEADER_AUTH_KEY"`
-	TrustedHeaderAuthAllowSignup bool                       `yaml:"trusted_header_auth_allow_signup" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH_ALLOW_SIGNUP"`
-	TrustReverseProxyIps         string                     `yaml:"trust_reverse_proxy_ips" default:"" env:"WAKAPI_TRUST_REVERSE_PROXY_IPS"` // comma-separated list of trusted reverse proxy ips
-	SignupMaxRate                string                     `yaml:"signup_max_rate" default:"5/1h" env:"WAKAPI_SIGNUP_MAX_RATE"`
-	LoginMaxRate                 string                     `yaml:"login_max_rate" default:"10/1m" env:"WAKAPI_LOGIN_MAX_RATE"`
-	PasswordResetMaxRate         string                     `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
-	SecureCookie                 *securecookie.SecureCookie `yaml:"-"`
-	SessionKey                   []byte                     `yaml:"-"`
-	OidcProviders                []oidcProviderConfig       `yaml:"oidc"`
+	PasswordSalt                 string               `yaml:"password_salt" default:"" env:"WAKAPI_PASSWORD_SALT"`
+	InsecureCookies              bool                 `yaml:"insecure_cookies" default:"false" env:"WAKAPI_INSECURE_COOKIES"`
+	CookieMaxAgeSec              int                  `yaml:"cookie_max_age" default:"172800" env:"WAKAPI_COOKIE_MAX_AGE"`
+	TrustedHeaderAuth            bool                 `yaml:"trusted_header_auth" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH"`
+	TrustedHeaderAuthKey         string               `yaml:"trusted_header_auth_key" default:"Remote-User" env:"WAKAPI_TRUSTED_HEADER_AUTH_KEY"`
+	TrustedHeaderAuthAllowSignup bool                 `yaml:"trusted_header_auth_allow_signup" default:"false" env:"WAKAPI_TRUSTED_HEADER_AUTH_ALLOW_SIGNUP"`
+	TrustReverseProxyIps         string               `yaml:"trust_reverse_proxy_ips" default:"" env:"WAKAPI_TRUST_REVERSE_PROXY_IPS"` // comma-separated list of trusted reverse proxy ips
+	SignupMaxRate                string               `yaml:"signup_max_rate" default:"5/1h" env:"WAKAPI_SIGNUP_MAX_RATE"`
+	LoginMaxRate                 string               `yaml:"login_max_rate" default:"10/1m" env:"WAKAPI_LOGIN_MAX_RATE"`
+	PasswordResetMaxRate         string               `yaml:"password_reset_max_rate" default:"5/1h" env:"WAKAPI_PASSWORD_RESET_MAX_RATE"`
+	CookieKey                    string               `yaml:"cookie_key" default:"" env:"WAKAPI_COOKIE_KEY"` // base64 encoded key, used to derive session and authentication keys
+	CookieKeyBytes               []byte               `yaml:"-"`
+	OidcProviders                []oidcProviderConfig `yaml:"oidc"`
 	trustReverseProxyIpsParsed   []net.IPNet
 }
 
@@ -609,21 +612,20 @@ func Load(configFlag string, version string) *Config {
 		os.Exit(1)
 	}
 
-	hashKey := securecookie.GenerateRandomKey(64)
-	blockKey := securecookie.GenerateRandomKey(32)
-	sessionKey := securecookie.GenerateRandomKey(32)
-
-	if IsDev(env) {
-		slog.Warn("⚠️ using temporary keys to sign and encrypt cookies in dev mode, make sure to set env to production for real-world use")
-		hashKey, blockKey = getTemporarySecureKeys()
-		blockKey = hashKey
+	cookieKey, err := base64.StdEncoding.DecodeString(config.Security.CookieKey)
+	if err != nil {
+		slog.Warn("⚠️ Failed to decode cookie key, generating a random one")
+		cookieKey = securecookie.GenerateRandomKey(128)
 	}
-	if config.Security.InsecureCookies {
-		slog.Warn("⚠️ it is strongly advised NOT to use insecure cookies, are you sure about this setting?")
+	if len(cookieKey) == 0 {
+		// No cookie key provided, lets generate a random one
+		cookieKey = securecookie.GenerateRandomKey(128)
 	}
+	if len(cookieKey) < 32 {
+		slog.Warn("⚠️ Cookie key is too short, it is recommended to use at least 32 bytes for security reasons")
+	}
+	config.Security.CookieKeyBytes = cookieKey
 
-	config.Security.SecureCookie = securecookie.New(hashKey, blockKey)
-	config.Security.SessionKey = sessionKey
 	config.Security.ParseTrustReverseProxyIPs()
 
 	config.Server.BasePath = strings.TrimSuffix(config.Server.BasePath, "/")
@@ -734,6 +736,7 @@ func Load(configFlag string, version string) *Config {
 	// post config-load tasks
 	initOpenIDConnect(config)
 	InitWebAuthn(config)
+	InitializeCookies()
 
 	return Get()
 }

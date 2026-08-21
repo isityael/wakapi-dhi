@@ -1,7 +1,15 @@
 package migrations
 
 import (
+	"compress/gzip"
+	"errors"
+	"fmt"
+	"io"
 	"log/slog"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/utils"
@@ -32,7 +40,7 @@ func setHasRun(name string, db *gorm.DB) {
 
 // save view ddl to temporary table to be restored later
 func backupView(db *gorm.DB) error {
-	if db.Dialector.Name() != "sqlite" {
+	if !strings.HasPrefix(db.Dialector.Name(), "sqlite") {
 		return nil
 	}
 
@@ -73,7 +81,7 @@ func backupView(db *gorm.DB) error {
 
 // restore view from backed up ddl
 func restoreView(db *gorm.DB) error {
-	if db.Dialector.Name() != "sqlite" {
+	if !strings.HasPrefix(db.Dialector.Name(), "sqlite") {
 		return nil
 	}
 
@@ -130,8 +138,65 @@ func restoreView(db *gorm.DB) error {
 
 // remove backed up view from temporary table so it won't be restored later
 func dequeueBackedUpView(db *gorm.DB, name string) error {
-	if db.Dialector.Name() != "sqlite" {
+	if !strings.HasPrefix(db.Dialector.Name(), "sqlite") {
 		return nil
 	}
 	return db.Exec("DELETE FROM "+viewBackupTable+" WHERE name = ?", name).Error
+}
+
+func getColumnTypeSqlite(db *gorm.DB, tblName, colName string) (string, error) {
+	var info []colInfo
+	if err := db.Raw(fmt.Sprintf("pragma table_info(%s)", tblName)).Scan(&info).Error; err != nil {
+		return "", err
+	}
+	if len(info) == 0 {
+		return "", errors.New("no columns found")
+	}
+
+	for _, c := range info {
+		if c.Name == colName {
+			return strings.ToLower(c.Type), nil
+		}
+	}
+
+	return "", errors.New("column not found")
+}
+
+func backupSqliteDb(dbPath string) error {
+	info, err := os.Stat(dbPath)
+	if err != nil {
+		return fmt.Errorf("failed to stat database file: %w", err)
+	}
+	if info.IsDir() {
+		return fmt.Errorf("database path is a directory: %s", dbPath)
+	}
+
+	absPath, err := filepath.Abs(dbPath)
+	if err != nil {
+		return fmt.Errorf("failed to resolve absolute path: %w", err)
+	}
+
+	timestamp := time.Now().Format("20060102_150405")
+	backupPath := absPath + ".bak." + timestamp + ".gz"
+
+	srcFile, err := os.Open(dbPath)
+	if err != nil {
+		return fmt.Errorf("failed to open database file: %w", err)
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(backupPath)
+	if err != nil {
+		return fmt.Errorf("failed to create backup file: %w", err)
+	}
+	defer dstFile.Close()
+
+	gzWriter := gzip.NewWriter(dstFile)
+	defer gzWriter.Close()
+
+	if _, err := io.Copy(gzWriter, srcFile); err != nil {
+		return fmt.Errorf("failed to write backup: %w", err)
+	}
+
+	return nil
 }
