@@ -133,3 +133,35 @@ func (suite *UserServiceTestSuite) TestUserService_GetByKeyFromAdditionalApiKeys
 	suite.NotNil(err)
 	suite.Equal(err, errors.New("not found"))
 }
+
+func (suite *UserServiceTestSuite) TestUserService_GetUserByKey_DoesNotHitUserByIdCache() {
+	sut := NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo)
+
+	suite.UserRepo.On("FindOne", models.User{ID: TestUserID}).Return(suite.TestUser, nil)
+	suite.UserRepo.On("FindOne", models.User{ApiKey: TestUserID}).Return(nil, errors.New("user not found"))
+	suite.ApiKeyService.On("GetByApiKey", TestUserID, false).Return(nil, errors.New("key not found"))
+
+	userByID, err := sut.GetUserById(TestUserID)
+	suite.Nil(err)
+	suite.Equal(suite.TestUser, userByID)
+
+	userByKey, err := sut.GetUserByKey(TestUserID, false)
+	suite.Nil(userByKey)
+	suite.NotNil(err)
+}
+
+func (suite *UserServiceTestSuite) TestUserService_GetUserByKey_DoesNotCacheUnderUsername() {
+	sut := NewUserService(suite.KeyValueService, suite.MailService, suite.ApiKeyService, suite.UserRepo)
+
+	suite.UserRepo.On("FindOne", models.User{ApiKey: TestAPIKey}).Return(suite.TestUser, nil)
+	suite.UserRepo.On("FindOne", models.User{ApiKey: TestUserID}).Return(nil, errors.New("user not found"))
+	suite.ApiKeyService.On("GetByApiKey", TestUserID, false).Return(nil, errors.New("key not found"))
+
+	userByKeyValid, err := sut.GetUserByKey(TestAPIKey, false)
+	suite.Nil(err)
+	suite.Equal(suite.TestUser, userByKeyValid)
+
+	userByKeyInvalid, err := sut.GetUserByKey(TestUserID, false)
+	suite.Nil(userByKeyInvalid)
+	suite.NotNil(err)
+}
