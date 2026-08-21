@@ -197,7 +197,7 @@ github.com/klauspost/cpuid/v2
 # github.com/mileusna/useragent v1.3.5
 ## explicit; go 1.14
 github.com/mileusna/useragent
-# github.com/muety/wakapi v0.0.0-20260820224021-c2ee745d6984 => .
+# github.com/muety/wakapi v0.0.0-20260821073631-4ed601ecbf87 => .
 ## explicit; go 1.26.5
 github.com/muety/wakapi/config
 github.com/muety/wakapi/data
