@@ -10,8 +10,9 @@ pipeline="${repo_root}/.woodpecker/build.yaml"
 ci_pipeline="${repo_root}/.woodpecker/ci.yaml"
 validate_pipeline="${repo_root}/.woodpecker/validate.yaml"
 tag_workflow="${repo_root}/.forgejo/workflows/release-tag.yaml"
+renovate_config="${repo_root}/renovate.json"
 
-grep -Eq 'dhi\.io/golang:1\.26\.[6-9]-alpine3\.24-dev@sha256:' "${definition}" || {
+grep -Eq 'dhi\.io/golang:(1\.26\.[6-9]|1\.2[7-9]\.[0-9]+|1\.[3-9][0-9]\.[0-9]+)-alpine3\.24-dev@sha256:' "${definition}" || {
   echo "DHI build must use Go 1.26.6 or newer for the current Go vulnerability fixes" >&2
   exit 1
 }
@@ -23,6 +24,28 @@ test -n "${dockerfile_go_reference}" \
     echo "Dockerfile and native DHI definition must pin the same Go image" >&2
     exit 1
   }
+
+while IFS= read -r build_go_reference; do
+  test "${build_go_reference}" = "${definition_go_reference}" || {
+    echo "All native DHI build steps must pin the declared Go image" >&2
+    exit 1
+  }
+done < <(sed -n 's/^[[:space:]]*uses:[[:space:]]*\(dhi\.io\/golang:.*\)$/\1/p' "${definition}")
+
+jq -e '
+  (.enabledManagers | index("custom.regex")) != null
+  and
+  any(.customManagers[]?;
+    .customType == "regex"
+    and any(.managerFilePatterns[]?; . == "/^dhi\\/.*\\.ya?ml$/")
+    and any(.matchStrings[]?; contains("GOLANG_REFERENCE"))
+    and any(.matchStrings[]?; contains("uses"))
+    and .datasourceTemplate == "docker"
+  )
+' "${renovate_config}" >/dev/null || {
+  echo "Renovate must update the native DHI Go reference together with the Dockerfile" >&2
+  exit 1
+}
 
 release_fixture="$(mktemp -d)"
 trap 'rm -r "${release_fixture}"' EXIT
