@@ -5,7 +5,18 @@
     "config:best-practices",
     ":preserveSemverRanges"
   ],
-  "enabledManagers": ["gomod", "dockerfile", "npm"],
+  "enabledManagers": ["gomod", "dockerfile", "npm", "custom.regex"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^dhi\\/.*\\.ya?ml$/"],
+      "matchStrings": [
+        "GOLANG_REFERENCE:\\s*(?<depName>dhi\\.io/golang):(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]+)",
+        "uses:\\s*(?<depName>dhi\\.io/golang):(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]+)"
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ],
   "postUpdateOptions": ["gomodTidy"],
   "packageRules": [
     {
