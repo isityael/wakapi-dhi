@@ -2,6 +2,7 @@
 when:
   - event: pull_request
   - event: push
+    branch: master
 
 steps:
   - name: workflow-contracts
