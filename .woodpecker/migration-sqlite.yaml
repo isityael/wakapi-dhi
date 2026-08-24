@@ -2,6 +2,7 @@
 when:
   - event: pull_request
   - event: push
+    branch: master
 
 steps:
   - name: sqlite-migration-tests
@@ -26,3 +27,6 @@ steps:
           limits:
             cpu: 2000m
             memory: 2Gi
+
+depends_on:
+  - ci
