@@ -68,3 +68,10 @@ services:
       MARIADB_PASSWORD: wakapi
       MARIADB_DATABASE: wakapi
       MARIADB_ROOT_PASSWORD: example
+
+depends_on:
+  - migration-sqlite
+
+concurrency:
+  limit: 2
+  group: wakapi-migration
