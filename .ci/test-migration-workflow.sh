@@ -4,6 +4,14 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 external="${repo_root}/.woodpecker/migration.yaml"
 sqlite="${repo_root}/.woodpecker/migration-sqlite.yaml"
+ci="${repo_root}/.woodpecker/ci.yaml"
+
+for workflow in "${ci}" "${external}" "${sqlite}"; do
+  [[ "$(yq '.when[] | select(.event == "push") | .branch' "${workflow}")" == "master" ]] || {
+    echo "push workflows must run only on master to avoid duplicating pull-request pipelines" >&2
+    exit 1
+  }
+done
 
 [[ "$(yq '.matrix.include | length' "${external}")" == "3" ]] || {
   echo "external migration matrix must contain exactly three database variants" >&2
