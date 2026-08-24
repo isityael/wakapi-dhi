@@ -32,17 +32,12 @@ while IFS= read -r build_go_reference; do
   }
 done < <(sed -n 's/^[[:space:]]*uses:[[:space:]]*\(dhi\.io\/golang:.*\)$/\1/p' "${definition}")
 
-jq -e '
-  (.enabledManagers | index("custom.regex")) != null
-  and
-  any(.customManagers[]?;
-    .customType == "regex"
-    and any(.managerFilePatterns[]?; . == "/^dhi\\/.*\\.ya?ml$/")
-    and any(.matchStrings[]?; contains("GOLANG_REFERENCE"))
-    and any(.matchStrings[]?; contains("uses"))
-    and .datasourceTemplate == "docker"
-  )
-' "${renovate_config}" >/dev/null || {
+grep -Fq '"custom.regex"' "${renovate_config}" \
+  && grep -Fq '"customType": "regex"' "${renovate_config}" \
+  && grep -Fq '"managerFilePatterns": ["/^dhi\\/.*\\.ya?ml$/"]' "${renovate_config}" \
+  && grep -Fq 'GOLANG_REFERENCE:' "${renovate_config}" \
+  && grep -Fq 'uses:' "${renovate_config}" \
+  && grep -Fq '"datasourceTemplate": "docker"' "${renovate_config}" || {
   echo "Renovate must update the native DHI Go reference together with the Dockerfile" >&2
   exit 1
 }
