@@ -27,3 +27,6 @@ steps:
           limits:
             cpu: 2000m
             memory: 2Gi
+
+depends_on:
+  - ci
