@@ -44,7 +44,7 @@ github.com/emersion/go-sasl
 # github.com/emersion/go-smtp v0.25.0
 ## explicit; go 1.13
 github.com/emersion/go-smtp
-# github.com/fxamacker/cbor/v2 v2.9.2
+# github.com/fxamacker/cbor/v2 v2.9.3
 ## explicit; go 1.20
 github.com/fxamacker/cbor/v2
 # github.com/getsentry/sentry-go v0.49.0
@@ -122,22 +122,24 @@ github.com/go-sql-driver/mysql
 ## explicit; go 1.18
 github.com/go-viper/mapstructure/v2
 github.com/go-viper/mapstructure/v2/internal/errors
-# github.com/go-webauthn/webauthn v0.17.4
+# github.com/go-webauthn/webauthn v0.18.0
 ## explicit; go 1.25.0
 github.com/go-webauthn/webauthn/metadata
 github.com/go-webauthn/webauthn/protocol
 github.com/go-webauthn/webauthn/protocol/webauthncbor
 github.com/go-webauthn/webauthn/protocol/webauthncose
 github.com/go-webauthn/webauthn/webauthn
-# github.com/go-webauthn/x v0.2.6
+# github.com/go-webauthn/x v0.3.0
 ## explicit; go 1.25.0
+github.com/go-webauthn/x/crypto/secp256k1
+github.com/go-webauthn/x/crypto/secp256k1/ecdsa
 github.com/go-webauthn/x/encoding/asn1
 github.com/go-webauthn/x/revoke
 # github.com/gofrs/uuid/v5 v5.5.1
 ## explicit; go 1.25
 github.com/gofrs/uuid/v5
-# github.com/gohugoio/hashstructure v1.0.0
-## explicit; go 1.25
+# github.com/gohugoio/hashstructure v1.1.0
+## explicit; go 1.26
 github.com/gohugoio/hashstructure
 # github.com/golang-jwt/jwt/v5 v5.3.1
 ## explicit; go 1.21
