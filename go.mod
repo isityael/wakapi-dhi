@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/alitto/pond/v2 v2.7.1
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/coreos/go-oidc/v3 v3.20.0
+	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/dchest/captcha v1.1.0
 	github.com/descope/virtualwebauthn v1.0.5
 	github.com/duke-git/lancet/v2 v2.3.9
@@ -31,7 +31,7 @@ require (
 	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.6
 	go.yaml.in/yaml/v3 v3.0.5
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 	golang.org/x/oauth2 v0.36.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/driver/postgres v1.6.2

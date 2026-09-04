@@ -6,7 +6,7 @@ replace github.com/muety/wakapi => ..
 
 require (
 	github.com/muety/wakapi v0.0.0-20260821073631-4ed601ecbf87
-	github.com/ncruces/go-sqlite3 v0.35.3
+	github.com/ncruces/go-sqlite3 v0.35.4
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/schollz/progressbar/v3 v3.19.1
 	go.yaml.in/yaml/v3 v3.0.5
@@ -19,18 +19,18 @@ require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/alitto/pond/v2 v2.7.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/coreos/go-oidc/v3 v3.20.0 // indirect
+	github.com/coreos/go-oidc/v3 v3.21.0 // indirect
 	github.com/dchest/captcha v1.1.0 // indirect
 	github.com/duke-git/lancet/v2 v2.3.9 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
-	github.com/getsentry/sentry-go v0.48.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/getsentry/sentry-go v0.49.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-sql-driver/mysql v1.10.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
-	github.com/go-webauthn/webauthn v0.17.4 // indirect
-	github.com/go-webauthn/x v0.2.6 // indirect
+	github.com/go-webauthn/webauthn v0.18.0 // indirect
+	github.com/go-webauthn/x v0.3.0 // indirect
 	github.com/gofrs/uuid/v5 v5.5.1 // indirect
-	github.com/gohugoio/hashstructure v1.0.0 // indirect
+	github.com/gohugoio/hashstructure v1.1.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -44,7 +44,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mileusna/useragent v1.3.5 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
-	github.com/ncruces/go-sqlite3-wasm/v3 v3.2.35304 // indirect
+	github.com/ncruces/go-sqlite3-wasm/v5 v5.0.35304 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
@@ -55,7 +55,7 @@ require (
 	github.com/samber/slog-sentry/v2 v2.11.0 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
