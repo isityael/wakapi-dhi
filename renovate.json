@@ -32,7 +32,7 @@
       "matchUpdateTypes": ["patch", "minor"]
     },
     {
-      "matchManagers": ["dockerfile"],
+      "matchManagers": ["dockerfile", "custom.regex"],
       "groupName": "Dockerfile base images",
       "labels": ["dependencies", "docker"]
     },
