@@ -71,10 +71,10 @@ github.com/mileusna/useragent v1.3.5 h1:SJM5NzBmh/hO+4LGeATKpaEX9+b4vcGg2qXGLiNG
 github.com/mileusna/useragent v1.3.5/go.mod h1:3d8TOmwL/5I8pJjyVDteHtgDGcefrFUX4ccGOMKNYYc=
 github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db h1:62I3jR2EmQ4l5rM/4FEfDWcRD+abF5XlKShorW5LRoQ=
 github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db/go.mod h1:l0dey0ia/Uv7NcFFVbCLtqEBQbrT4OCwCSKTEv6enCw=
-github.com/ncruces/go-sqlite3 v0.35.4 h1:unjCk+lVaxMpD9hbVaZyDJviS5Unw1P03+HF0ROLlHo=
-github.com/ncruces/go-sqlite3 v0.35.4/go.mod h1:dfbnrzPOLEIpCNZ1yDRkIG60pGxjDCwiEKj9A0lGWYE=
-github.com/ncruces/go-sqlite3-wasm/v5 v5.0.35304 h1:Ck3GB9h+0n3hJqdhAeehOef3k5V+llGio1c2Dyk/W6w=
-github.com/ncruces/go-sqlite3-wasm/v5 v5.0.35304/go.mod h1:gJyN6U50iis7mDt+rzRv8u9vUNr08NTD2p4fVonKn/Q=
+github.com/ncruces/go-sqlite3 v0.35.5 h1:fEXwTNa2UpmvDeuvla9dmryx83ibw6BNqV1UQgpWFV0=
+github.com/ncruces/go-sqlite3 v0.35.5/go.mod h1:tTbtWBtzqI1Nq/70YGA+iAXbeX/AEj3cOyIJnmBkcrg=
+github.com/ncruces/go-sqlite3-wasm/v6 v6.2.35304 h1:jmYAkmKh9vFD5GeRURV5ujMs00jYV+Us35cG6mOcYx0=
+github.com/ncruces/go-sqlite3-wasm/v6 v6.2.35304/go.mod h1:7jR6s8eAQOlU/21q/qWR2tQSQpkjV2NO0KH9vlIejiE=
 github.com/ncruces/go-sqlite3/gormlite v0.34.0 h1:QLlOy/i7OabsFUQ+d5KyXmq2hw9sMh/CRW435+eQMRY=
 github.com/ncruces/go-sqlite3/gormlite v0.34.0/go.mod h1:CMv+6YhqLmPBXYACiQtrWA0q/JLIMTKB4E65SUfLgF0=
 github.com/ncruces/julianday v1.0.0 h1:fH0OKwa7NWvniGQtxdJRxAgkBMolni2BjDHaWTxqt7M=
