@@ -44,7 +44,7 @@ github.com/emersion/go-sasl
 # github.com/emersion/go-smtp v0.25.0
 ## explicit; go 1.13
 github.com/emersion/go-smtp
-# github.com/fxamacker/cbor/v2 v2.9.3
+# github.com/fxamacker/cbor/v2 v2.9.4
 ## explicit; go 1.20
 github.com/fxamacker/cbor/v2
 # github.com/getsentry/sentry-go v0.49.0
@@ -122,7 +122,7 @@ github.com/go-sql-driver/mysql
 ## explicit; go 1.18
 github.com/go-viper/mapstructure/v2
 github.com/go-viper/mapstructure/v2/internal/errors
-# github.com/go-webauthn/webauthn v0.18.1
+# github.com/go-webauthn/webauthn v0.18.2
 ## explicit; go 1.26.0
 github.com/go-webauthn/webauthn/metadata
 github.com/go-webauthn/webauthn/protocol
