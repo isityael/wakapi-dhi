@@ -16,12 +16,12 @@ vars:
   BASE_DIGEST: sha256:390fea8b496568bd8e8f085ab8a1c92403d9baa047e1f82436c7874694de2c2d
   BASE_TAG: 20260611-alpine3.24
   COMMIT_SHA: 7c0df0cce3ed904e61dbe44d5c74354971dd6020
-  GOLANG_REFERENCE: dhi.io/golang:1.27.1-alpine3.24-dev@sha256:c98d8594257a3686505216f95efd480dbe9128990fa31919e751944369c8e2e5
+  GOLANG_REFERENCE: dhi.io/golang:1.27.1-alpine3.24-dev@sha256:47e6ff9623d7f90f2f6e1cd4b0fb129775d8c26e599c4d5da4d66fae1438181d
   WAKAPI_VERSION: 2.17.6-yaelmoshi.1
 contents:
   builds:
     - name: wakapi
-      uses: dhi.io/golang:1.27.1-alpine3.24-dev@sha256:c98d8594257a3686505216f95efd480dbe9128990fa31919e751944369c8e2e5
+      uses: dhi.io/golang:1.27.1-alpine3.24-dev@sha256:47e6ff9623d7f90f2f6e1cd4b0fb129775d8c26e599c4d5da4d66fae1438181d
       work-dir: /go/src/github.com/isityael/wakapi-dhi
       caches:
         - path: /go/pkg/mod
