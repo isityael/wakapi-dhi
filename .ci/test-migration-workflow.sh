@@ -14,8 +14,8 @@ for workflow in "${ci}" "${external}" "${sqlite}"; do
   }
 done
 
-[[ "$(yq '.matrix.include | length' "${external}")" == "3" ]] || {
-  echo "external migration matrix must contain exactly three database variants" >&2
+[[ "$(yq '.matrix' "${external}")" == "null" ]] || {
+  echo "external migrations run against Postgres only; MySQL/MariaDB are unsupported in this fork" >&2
   exit 1
 }
 
@@ -24,8 +24,8 @@ done
   exit 1
 }
 
-[[ "$(yq '.services[0].image' "${external}")" == '${DB_IMAGE}' ]] || {
-  echo "external migration service image must come from the matrix" >&2
+[[ "$(yq '.services[0].image' "${external}")" == postgres:* ]] || {
+  echo "external migration service must be a Postgres image" >&2
   exit 1
 }
 
@@ -53,7 +53,7 @@ done
 
 [[ "$(yq '.concurrency.limit' "${external}")" == "2" ]] \
   && [[ "$(yq '.concurrency.group' "${external}")" == "wakapi-migration" ]] || {
-  echo "external migration matrix concurrency must be capped" >&2
+  echo "external migration concurrency must be capped" >&2
   exit 1
 }
 
