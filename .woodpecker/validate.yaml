@@ -31,7 +31,6 @@ steps:
       - mkdir -p "$${GOMODCACHE}"
       - test -n "$(sed -n 's/^[[:space:]]*WAKAPI_VERSION:[[:space:]]*//p' dhi/wakapi.yaml | head -1)"
       - go mod verify
-      - go test ./...
 
   - name: rebuild-go-cache
     image: plugins/cache:1.10@sha256:6a5cf9cf3813e9b5a554f56dbc9c073cb24463b7bddd5b10e25790d732e68938

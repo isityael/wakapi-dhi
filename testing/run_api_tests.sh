@@ -4,7 +4,9 @@ set -o nounset -o pipefail -o errexit
 DB_TYPE=${1-sqlite}
 USE_EXTERNAL_DB=${WAKAPI_TEST_EXTERNAL_DB:-0}
 
-if ! command -v bru &> /dev/null; then
+# Bruno only runs against SQLite (the only DB with seed data), so external DB
+# runs don't need it installed.
+if [ "$DB_TYPE" == "sqlite" ] && ! command -v bru &> /dev/null; then
     echo "Bruno CLI could not be found. Run 'npm install -g @usebruno/cli' first."
     exit 1
 fi
