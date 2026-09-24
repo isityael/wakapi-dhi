@@ -1,17 +1,9 @@
-# Wakapi migration test workflow.
+# Wakapi migration test workflow. The fork only supports Postgres (plus the
+# SQLite default covered by migration-sqlite), so MySQL/MariaDB are not tested.
 when:
   - event: pull_request
   - event: push
     branch: master
-
-matrix:
-  include:
-    - DB_TYPE: postgres
-      DB_IMAGE: postgres:18
-    - DB_TYPE: mysql
-      DB_IMAGE: mysql:9
-    - DB_TYPE: mariadb
-      DB_IMAGE: mariadb:12
 
 steps:
   - name: migration-tests
@@ -21,28 +13,15 @@ steps:
       GOEXPERIMENT: jsonv2
       GOFLAGS: -mod=vendor
       WAKAPI_TEST_EXTERNAL_DB: "1"
+      WAKAPI_DB_HOST: database
+      WAKAPI_DB_PORT: "5432"
     commands:
       - apt-get update
       - apt-get install -y --no-install-recommends ca-certificates curl gnupg sqlite3 unzip
       - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
       - apt-get install -y --no-install-recommends nodejs
       - npm install -g @usebruno/cli@2.15.0
-      - |
-        case "$DB_TYPE" in
-          postgres)
-            export WAKAPI_DB_HOST=database
-            export WAKAPI_DB_PORT=5432
-            ;;
-          mysql)
-            export WAKAPI_DB_HOST=database
-            export WAKAPI_DB_PORT=3306
-            ;;
-          mariadb)
-            export WAKAPI_DB_HOST=database
-            export WAKAPI_DB_PORT=3306
-            ;;
-        esac
-        ./testing/run_api_tests.sh "$DB_TYPE" --migration
+      - ./testing/run_api_tests.sh postgres --migration
     backend_options:
       kubernetes:
         resources:
@@ -55,19 +34,11 @@ steps:
 
 services:
   - name: database
-    image: ${DB_IMAGE}
+    image: postgres:18
     environment:
       POSTGRES_USER: wakapi
       POSTGRES_PASSWORD: wakapi
       POSTGRES_DB: wakapi
-      MYSQL_USER: wakapi
-      MYSQL_PASSWORD: wakapi
-      MYSQL_DATABASE: wakapi
-      MYSQL_ROOT_PASSWORD: example
-      MARIADB_USER: wakapi
-      MARIADB_PASSWORD: wakapi
-      MARIADB_DATABASE: wakapi
-      MARIADB_ROOT_PASSWORD: example
 
 depends_on:
   - migration-sqlite
