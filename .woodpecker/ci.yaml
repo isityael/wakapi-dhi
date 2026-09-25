@@ -1,4 +1,5 @@
-# Wakapi PR/push test workflow.
+# Wakapi PR/push test workflow: workflow contracts plus one Go test run
+# (unit tests and the smtp4dev-backed mail suite share a single compile).
 when:
   - event: pull_request
   - event: push
@@ -11,29 +12,22 @@ steps:
       - .ci/test-migration-workflow.sh
       - .ci/test-dhi-release-policy.sh
 
-  # The SQLite Bruno API suite runs in migration-sqlite (--migration is a
-  # superset of the plain run), so this step only needs the Go toolchain.
-  - name: unit-tests
+  # GOFLAGS=-mod=vendor fails on any go.mod/vendor/modules.txt mismatch, so
+  # this also enforces vendor consistency without a module download.
+  - name: go-tests
     image: dhi.io/golang:1.27.1-alpine3.24-dev@sha256:8690ed7def62c94fec567dcd9803922f7c77fcfbd87f51106233c3ee2c81c705
     environment:
       CGO_ENABLED: "0"
       GOEXPERIMENT: jsonv2
       GOFLAGS: -mod=vendor
-    commands:
-      - go test $(go list ./... | grep -v 'github.com/muety/wakapi/scripts')
-
-  - name: mail-tests
-    image: dhi.io/golang:1.27.1-alpine3.24-dev@sha256:8690ed7def62c94fec567dcd9803922f7c77fcfbd87f51106233c3ee2c81c705
-    environment:
-      CGO_ENABLED: "0"
-      GOFLAGS: -mod=vendor
-      WAKAPI_TEST_EXTERNAL_SMTP4DEV: "1"
       WAKAPI_TEST_SMTP4DEV_API_URL: http://smtp4dev/api
       WAKAPI_TEST_SMTP4DEV_HOST: smtp4dev
       WAKAPI_TEST_SMTP4DEV_PORT: "25"
     commands:
-      - apk add --no-cache bash
-      - ./testing/run_mail_tests.sh
+      # TestSmtpTestSuite skips itself when smtp4dev is unreachable; fail
+      # instead of silently dropping the mail coverage.
+      - for i in $(seq 1 60); do nc -z smtp4dev 25 && break; sleep 1; done; nc -z smtp4dev 25
+      - go test -count=1 $(go list ./... | grep -v '/scripts')
 
 services:
   - name: smtp4dev

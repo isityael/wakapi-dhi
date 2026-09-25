@@ -4,9 +4,8 @@ set -o nounset -o pipefail -o errexit
 DB_TYPE=${1-sqlite}
 USE_EXTERNAL_DB=${WAKAPI_TEST_EXTERNAL_DB:-0}
 
-# Bruno only runs against SQLite (the only DB with seed data), so external DB
-# runs don't need it installed.
-if [ "$DB_TYPE" == "sqlite" ] && ! command -v bru &> /dev/null; then
+# Bruno runs against SQLite and Postgres (the DBs with seed data).
+if { [ "$DB_TYPE" == "sqlite" ] || [ "$DB_TYPE" == "postgres" ]; } && ! command -v bru &> /dev/null; then
     echo "Bruno CLI could not be found. Run 'npm install -g @usebruno/cli' first."
     exit 1
 fi
@@ -24,13 +23,23 @@ script_dir=$(dirname "$script_path")
 
 export TZ=${TZ:-Europe/Berlin}
 
-echo "Compiling."
-(cd "$script_dir/.." || exit 1; CGO_ENABLED=0 go build -o wakapi)
+# WAKAPI_TEST_SKIP_BUILD=1 reuses ../wakapi from an earlier run in the same job.
+if [ "${WAKAPI_TEST_SKIP_BUILD:-0}" -eq 1 ] && [ -x "$script_dir/../wakapi" ]; then
+    echo "Reusing existing build."
+else
+    echo "Compiling."
+    (cd "$script_dir/.." || exit 1; CGO_ENABLED=0 go build -o wakapi)
+fi
 
 cd "$script_dir" || exit 1
 
-# Download previous release (when upgrade testing)
-if [ "${MIGRATION-0}" -eq 1 ]; then
+# Previous release (when upgrade testing). CI passes the binary of the last
+# published fork image; local runs fall back to upstream's latest release.
+if [ "${MIGRATION-0}" -eq 1 ] && [ -n "${WAKAPI_TEST_PREVIOUS_BINARY:-}" ]; then
+    cp "$WAKAPI_TEST_PREVIOUS_BINARY" ./wakapi
+    chmod +x ./wakapi
+    echo "Running tests with release version $(./wakapi -version 2>/dev/null || echo unknown)"
+elif [ "${MIGRATION-0}" -eq 1 ]; then
     if [ ! -f wakapi_linux_amd64.zip ]; then
         echo "Downloading latest release"
         curl https://github.com/muety/wakapi/releases/latest/download/wakapi_linux_amd64.zip -O -L
@@ -141,6 +150,20 @@ start_wakapi_background() {
 kill_wakapi() {
     echo "Shutting down Wakapi ..."
     kill -TERM $pid || true
+    # Wait for the port to free up, so the next health check can't be
+    # answered by the instance that is still shutting down.
+    wait "$pid" 2> /dev/null || true
+}
+
+seeded=0
+seed_postgres() {
+    # Bruno fixtures, loaded right after the first boot has created the
+    # schema, so an upgrade run migrates a database that already has data.
+    if [ "$DB_TYPE" == "postgres" ] && [ "$seeded" -eq 0 ]; then
+        echo "Importing seed data ..."
+        PGPASSWORD=wakapi psql -v ON_ERROR_STOP=1 -h "$db_host" -p "$db_port" -U wakapi -d wakapi -f seed.postgres.sql
+        seeded=1
+    fi
 }
 
 # Run original wakapi
@@ -149,19 +172,22 @@ if [ "${MIGRATION-0}" -eq 1 ]; then
     echo "Running last release ..."
     start_wakapi_background "./wakapi" "$config"
     kill_wakapi
+    seed_postgres
 fi
 
 echo "Running current build ..."
 start_wakapi_background "../wakapi" "$config"
 kill_wakapi
+seed_postgres
 rm -f wakapi_testing.db
 
-# Only sqlite has data
-if [ "$DB_TYPE" == "sqlite" ]; then
-    echo "Creating database and schema ..."
-    sqlite3 wakapi_testing.db < schema.sql
-    echo "Importing seed data ..."
-    sqlite3 wakapi_testing.db < data.sql
+if [ "$DB_TYPE" == "sqlite" ] || [ "$DB_TYPE" == "postgres" ]; then
+    if [ "$DB_TYPE" == "sqlite" ]; then
+        echo "Creating database and schema ..."
+        sqlite3 wakapi_testing.db < schema.sql
+        echo "Importing seed data ..."
+        sqlite3 wakapi_testing.db < data.sql
+    fi
 
     start_wakapi_background "../wakapi" "$config"
     echo "Running test collection ..."

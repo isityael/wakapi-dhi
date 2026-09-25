@@ -1,0 +1,54 @@
+# Wakapi API workflow: upgrade from the last published release on Postgres
+# (the production dialect), then the Bruno API suite on Postgres and SQLite.
+# The current build is compiled once and shared across both runs.
+when:
+  - event: pull_request
+  - event: push
+    branch: master
+
+steps:
+  # The last published image is what production runs, so the upgrade test
+  # starts from it instead of upstream's GitHub release.
+  - name: previous-release
+    image: dhi.io/crane:0.21.7-debian13-dev@sha256:5c8e6a602d0c668812c6645de88af5b1d69c1a1faa4b05facecd6678371f38b7
+    commands:
+      - mkdir -p testing/previous
+      - crane export --platform linux/amd64 ghcr.io/isityael/wakapi-dhi:latest - | tar -xf - -C testing/previous app/wakapi
+      - testing/previous/app/wakapi --version || true
+
+  - name: api-tests
+    image: dhi.io/golang:1.27.1-alpine3.24-dev@sha256:8690ed7def62c94fec567dcd9803922f7c77fcfbd87f51106233c3ee2c81c705
+    environment:
+      CGO_ENABLED: "0"
+      GOEXPERIMENT: jsonv2
+      GOFLAGS: -mod=vendor
+      WAKAPI_TEST_EXTERNAL_DB: "1"
+      WAKAPI_DB_HOST: database
+      WAKAPI_DB_PORT: "5432"
+      WAKAPI_TEST_PREVIOUS_BINARY: previous/app/wakapi
+    commands:
+      - apk add --no-cache bash curl sqlite postgresql-client nodejs npm
+      - npm install -g @usebruno/cli@2.15.0
+      - ./testing/run_api_tests.sh postgres --migration
+      - WAKAPI_TEST_SKIP_BUILD=1 ./testing/run_api_tests.sh sqlite
+    backend_options:
+      kubernetes:
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+
+services:
+  - name: database
+    image: postgres:18
+    environment:
+      POSTGRES_USER: wakapi
+      POSTGRES_PASSWORD: wakapi
+      POSTGRES_DB: wakapi
+
+concurrency:
+  limit: 2
+  group: wakapi-migration
