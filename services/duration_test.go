@@ -14,17 +14,20 @@ import (
 )
 
 const (
-	TestUserId           = "muety"
-	TestProject1         = "test-project-1"
-	TestProject2         = "test-project-2"
-	TestProject3         = "test-project-3"
-	TestProject4         = "something-completely-different-4"
-	TestLanguageGo       = "Go"
-	TestLanguageJava     = "Java"
-	TestLanguagePython   = "Python"
-	TestEditorGoland     = "GoLand"
-	TestEditorIntellij   = "idea"
-	TestEditorVscode     = "vscode"
+	TestUserId         = "muety"
+	TestProject1       = "test-project-1"
+	TestProject2       = "test-project-2"
+	TestProject3       = "test-project-3"
+	TestProject4       = "something-completely-different-4"
+	TestLanguageGo     = "Go"
+	TestLanguageJava   = "Java"
+	TestLanguagePython = "Python"
+	TestEditorGoland   = "GoLand"
+	TestEditorIntellij = "idea"
+	TestEditorVscode   = "vscode"
+	// TODO: add test cases involving "ai coding" category and a editor (harness) + model combination
+	TestAiModelClaude    = "claude-3-5-sonnet"
+	TestAiModelGpt       = "gpt-4o"
 	TestOsLinux          = "Linux"
 	TestOsWin            = "Windows"
 	TestMachine1         = "muety-desktop"
@@ -164,7 +167,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 
 	/* TEST 1 */
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(-1*time.Minute)
-	suite.HeartbeatService.On("StreamAllWithinRaw", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
@@ -173,7 +176,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 
 	/* TEST 2 */
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Second)
-	suite.HeartbeatService.On("StreamAllWithinRaw", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
@@ -184,7 +187,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get() {
 
 	/* TEST 3 */
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
-	suite.HeartbeatService.On("StreamAllWithinRaw", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
@@ -212,7 +215,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 	)
 
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
-	suite.HeartbeatService.On("StreamAllWithinRaw", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, models.NewFiltersWith(models.SummaryEditor, TestEditorGoland), nil, true)
 	assert.Nil(suite.T(), err)
@@ -222,6 +225,33 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered() {
 	for _, d := range durations {
 		assert.Equal(suite.T(), TestEditorGoland, d.Editor)
 	}
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_Filtered_AiModel() {
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	h1 := &models.Heartbeat{
+		UserID:   TestUserId,
+		Project:  TestProject1,
+		Language: TestLanguageGo,
+		AIModel:  TestAiModelClaude,
+		Time:     models.CustomTime(suite.TestStartTime),
+	}
+	h2 := &models.Heartbeat{
+		UserID:   TestUserId,
+		Project:  TestProject1,
+		Language: TestLanguageGo,
+		AIModel:  TestAiModelGpt,
+		Time:     models.CustomTime(suite.TestStartTime.Add(5 * time.Minute)),
+	}
+
+	from, to := suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice([]*models.Heartbeat{h1, h2}), nil)
+
+	durations, err := sut.Get(from, to, suite.TestUser, models.NewFiltersWith(models.SummaryAiModel, TestAiModelClaude), nil, true)
+	assert.Nil(suite.T(), err)
+	assert.Len(suite.T(), durations, 1)
+	assert.Equal(suite.T(), TestAiModelClaude, durations[0].AIModel)
 }
 
 func (suite *DurationServiceTestSuite) TestDurationService_Get_ProjectDetails() {
@@ -236,7 +266,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_ProjectDetails() 
 	)
 
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
-	suite.HeartbeatService.On("StreamAllWithinRaw", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
 	testFilters := models.NewFiltersWith(models.SummaryEditor, TestEditorGoland).With(models.SummaryProject, TestProject1)
 	durations, err = sut.Get(from, to, suite.TestUser, testFilters, nil, true)
@@ -263,7 +293,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	from, to = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour)
 
 	/* Test 1 */
-	call1 := suite.HeartbeatService.On("StreamAllWithinRaw", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+	call1 := suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 	suite.TestUser.HeartbeatsTimeoutSec = 60
 	durations, _ = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
@@ -277,7 +307,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	call1.Unset()
 
 	/* Test 2 */
-	call2 := suite.HeartbeatService.On("StreamAllWithinRaw", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+	call2 := suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 	suite.TestUser.HeartbeatsTimeoutSec = 130
 	durations, _ = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
@@ -291,7 +321,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomTimeout() {
 	call2.Unset()
 
 	/* Test 3 */
-	call3 := suite.HeartbeatService.On("StreamAllWithinRaw", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+	call3 := suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 	suite.TestUser.HeartbeatsTimeoutSec = 140
 	durations, _ = sut.Get(from, to, suite.TestUser, nil, nil, true)
 
@@ -331,7 +361,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_Cached() {
 
 	from, to, toCached = suite.TestStartTime, suite.TestStartTime.Add(1*time.Hour), testDurations[2].TimeEnd().Add(time.Second)
 	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(testDurations, nil)
-	suite.HeartbeatService.On("StreamAllWithinRaw", toCached, to, suite.TestUser).Return(streamSlice(filterHeartbeats(toCached, to, suite.TestHeartbeats)), nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", toCached, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(toCached, to, suite.TestHeartbeats)), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, false)
 
@@ -356,7 +386,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_CustomInterval() 
 	)
 
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
-	suite.HeartbeatService.On("StreamAllWithinRaw", from, to, suite.TestUser).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice(filterHeartbeats(from, to, suite.TestHeartbeats)), nil)
 
 	customInterval := 15 * time.Minute
 	durations, err = sut.Get(from, to, suite.TestUser, nil, &customInterval, false)
@@ -385,7 +415,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_WithLanguageMappi
 
 	from, to = suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
 	suite.DurationRepository.On("GetAllWithinByFilters", from, to, suite.TestUser, mock.Anything).Return(testDurations, nil)
-	suite.HeartbeatService.On("StreamAllWithinRaw", mock.Anything, mock.Anything, suite.TestUser).Return(streamSlice([]*models.Heartbeat{}), nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", mock.Anything, mock.Anything, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice([]*models.Heartbeat{}), nil)
 
 	durations, err = sut.Get(from, to, suite.TestUser, nil, nil, false)
 
@@ -432,7 +462,7 @@ func (suite *DurationServiceTestSuite) TestDurationService_Get_WithLanguageMappi
 	suite.LanguageMappingService.On("ResolveByUser", suite.TestUser.ID).Return(mappings, nil)
 
 	from, to := suite.TestStartTime.Add(-1*time.Hour), suite.TestStartTime.Add(1*time.Hour)
-	suite.HeartbeatService.On("StreamAllWithinRaw", from, to, suite.TestUser).Return(streamSlice([]*models.Heartbeat{h1, h2, h3}), nil)
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from, to, suite.TestUser, models.ExcludeFromDurations).Return(streamSlice([]*models.Heartbeat{h1, h2, h3}), nil)
 
 	durations, err := sut.Get(from, to, suite.TestUser, nil, nil, true)
 
@@ -472,6 +502,7 @@ func (suite *DurationServiceTestSuite) TestDuration_Hashed() {
 		Branch:          "branch1",
 		Entity:          "entity1",
 		Extension:       "ext1",
+		AIModel:         "aimodel1",
 		Time:            models.CustomTime(now),
 		Duration:        10 * time.Second,
 		NumHeartbeats:   1,
@@ -553,6 +584,12 @@ func (suite *DurationServiceTestSuite) TestDuration_Hashed() {
 	d19.Timeout = 10 * time.Minute
 	d19.Hashed()
 	assert.Equal(suite.T(), d1.GroupHash, d19.GroupHash)
+
+	// different ai model -> different hash
+	d20 := *d1
+	d20.AIModel = "aimodel2"
+	d20.Hashed()
+	assert.NotEqual(suite.T(), d1.GroupHash, d20.GroupHash)
 }
 
 func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {

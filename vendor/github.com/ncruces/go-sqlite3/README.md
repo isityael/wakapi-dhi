@@ -1,7 +1,6 @@
 # Go bindings to SQLite using wasm2go
 
 [![Go Reference](https://pkg.go.dev/badge/image)](https://pkg.go.dev/github.com/ncruces/go-sqlite3)
-[![Go Report](https://goreportcard.com/badge/github.com/ncruces/go-sqlite3)](https://goreportcard.com/report/github.com/ncruces/go-sqlite3)
 [![Go Coverage](https://github.com/ncruces/go-sqlite3/wiki/coverage.svg)](https://github.com/ncruces/go-sqlite3/wiki/Test-coverage-report)
 
 Go module `github.com/ncruces/go-sqlite3` is a `cgo`-free [SQLite](https://sqlite.org/) wrapper.\
@@ -10,7 +9,7 @@ as well as direct access to most of the [C SQLite API](https://sqlite.org/cintro
 
 It wraps a [Wasm](https://webassembly.org/) build of SQLite,
 and uses [wasm2go](https://github.com/ncruces/wasm2go) to translate it to Go.\
-Go and [`x/sys`](https://pkg.go.dev/golang.org/x/sys) are the _only_ direct dependencies.
+Go and [`x/sys`](https://pkg.go.dev/golang.org/x/sys) are the _only_ required dependencies.
 
 ### Getting started
 
@@ -118,5 +117,5 @@ Also, post there if you used this driver for something interesting
 ([_"Show and tell"_](https://github.com/ncruces/go-sqlite3/discussions/categories/show-and-tell)),
 have an [idea](https://github.com/ncruces/go-sqlite3/discussions/categories/ideas)…
 
-The [Issue](https://github.com/ncruces/go-sqlite3/issues) tracker is for bugs,
+The [Issues](https://github.com/ncruces/go-sqlite3/issues) tracker is for bugs,
 and features we're working on, planning to work on, or asking for help with.

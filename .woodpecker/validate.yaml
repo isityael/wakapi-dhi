@@ -20,11 +20,11 @@ steps:
       region: garage
       path_style: true
       archive_format: zstd
-      cache_key: 'woodpecker/wakapi-dhi/go/amd64/go1.26-{{ checksum "go.sum" }}'
+      cache_key: 'woodpecker/wakapi-dhi/go/amd64/go1.27-{{ checksum "go.sum" }}'
       mount: [.go-mod-cache]
 
   - name: validate-release-inputs
-    image: dhi.io/golang:1.26.5-debian13-dev@sha256:4f8306e798384952c56c754db2ef72f075413a73a0bcf512890fe43d58f315de
+    image: dhi.io/golang:1.27.1-debian13-dev@sha256:e2e776afd69ca84181107b77325df3debb5e81f5386c6c4c4b0f5ab6681d8175
     environment:
       GOMODCACHE: ${CI_WORKSPACE}/.go-mod-cache
     commands:
@@ -48,5 +48,5 @@ steps:
       region: garage
       path_style: true
       archive_format: zstd
-      cache_key: 'woodpecker/wakapi-dhi/go/amd64/go1.26-{{ checksum "go.sum" }}'
+      cache_key: 'woodpecker/wakapi-dhi/go/amd64/go1.27-{{ checksum "go.sum" }}'
       mount: [.go-mod-cache]
