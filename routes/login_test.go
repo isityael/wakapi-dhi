@@ -99,6 +99,8 @@ func (suite *LoginHandlerTestSuite) BeforeTest(suiteName, testName string) {
 	suite.UserService.On("Count").Return(1, nil).Maybe()
 
 	cfg := config.Empty()
+	// Unit tests must not depend on live MX records for their e-mail domains.
+	cfg.Mail.SkipVerifyMXRecord = true
 	cfg.Security.CookieKeyBytes = securecookie.GenerateRandomKey(128)
 	cfg.Security.PasswordSalt = testPasswordSalt
 	cfg.Security.LoginMaxRate = "100/1m"
