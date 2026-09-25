@@ -41,3 +41,7 @@ security:
   signup_max_rate: 999/1s
   login_max_rate: 999/1s
   password_reset_max_rate: 999/1s
+mail:
+  enabled: false
+  # Keep the API suite hermetic: no live MX lookups for the test domains.
+  skip_verify_mx_record: true
