@@ -1,11 +1,11 @@
-module git.m0sh1.cc/m0sh1/wakapi-dhi/scripts
+module git.m0sh1.cc/isityael/wakapi-dhi/scripts
 
-go 1.26.5
+go 1.27
 
 replace github.com/muety/wakapi => ..
 
 require (
-	github.com/muety/wakapi v0.0.0-20260821073631-4ed601ecbf87
+	github.com/muety/wakapi v0.0.0-20260918071123-be6aeb483e57
 	github.com/ncruces/go-sqlite3 v0.35.6
 	github.com/ncruces/go-sqlite3/gormlite v0.34.0
 	github.com/schollz/progressbar/v3 v3.19.1
@@ -24,12 +24,11 @@ require (
 	github.com/duke-git/lancet/v2 v2.3.9 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/getsentry/sentry-go v0.49.0 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
-	github.com/go-sql-driver/mysql v1.10.0 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.5 // indirect
+	github.com/go-sql-driver/mysql v1.10.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-webauthn/webauthn v0.18.2 // indirect
 	github.com/go-webauthn/x v0.3.1 // indirect
-	github.com/gofrs/uuid/v5 v5.5.1 // indirect
 	github.com/gohugoio/hashstructure v1.1.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
@@ -38,7 +37,7 @@ require (
 	github.com/gorilla/sessions v1.4.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.10.0 // indirect
+	github.com/jackc/pgx/v5 v5.11.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
@@ -56,7 +55,7 @@ require (
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
-	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
+	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect

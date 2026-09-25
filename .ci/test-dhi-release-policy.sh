@@ -57,6 +57,24 @@ if "${prepare_definition}" "${definition}" "${release_definition}" "not-a-commit
   exit 1
 fi
 
+base_version="$(sed -n 's/^  WAKAPI_VERSION:[[:space:]]*//p' "${definition}")"
+"${prepare_definition}" "${definition}" "${release_definition}" "${release_commit}" "${base_version}-yael.7"
+grep -Fq "  WAKAPI_VERSION: ${base_version}-yael.7" "${release_definition}" || {
+  echo "release definition must carry the full release version" >&2
+  exit 1
+}
+for bad_version in "${base_version}-yael.x" "${base_version}-ym.1" "0.0.0-yael.1"; do
+  if "${prepare_definition}" "${definition}" "${release_definition}" "${release_commit}" "${bad_version}" 2>/dev/null; then
+    echo "release definition preparer must reject version ${bad_version}" >&2
+    exit 1
+  fi
+done
+
+grep -Fq "printf '%s\\n' '\${WAKAPI_VERSION}' > version.txt" "${definition}" || {
+  echo "release build must stamp version.txt with the release version" >&2
+  exit 1
+}
+
 ambiguous_definition="${release_fixture}/ambiguous.yaml"
 cp "${definition}" "${ambiguous_definition}"
 printf '%s\n' '  COMMIT_SHA: 89abcdef0123456789abcdef0123456789abcdef' >> "${ambiguous_definition}"
@@ -121,10 +139,16 @@ grep -Eq 'WAKAPI_VERSION=.*dhi/wakapi\.yaml' "${pipeline}" || {
   exit 1
 }
 
-if grep -Fq '"2.17.4-yaelmoshi.2"' "${pipeline}"; then
-  echo "release pipeline must not hard-code a stale Wakapi alias" >&2
+if grep -Eq 'yaelmoshi|-ym[.*"]' "${pipeline}" "${tag_workflow}" "${definition}"; then
+  echo "release naming must use <upstream>-yael.<n>, not the retired yaelmoshi/-ym scheme" >&2
   exit 1
 fi
+
+grep -Fq 'series="v${version}-yael"' "${tag_workflow}" \
+  && grep -Fq 'refs/tags/v*-yael.*' "${pipeline}" || {
+  echo "release tags must be v<upstream>-yael.<n>" >&2
+  exit 1
+}
 
 grep -Fq 'event: tag' "${pipeline}" \
   && grep -Fq 'ci/woodpecker/push/validate' "${tag_workflow}" \

@@ -14,7 +14,7 @@ steps:
   # The SQLite Bruno API suite runs in migration-sqlite (--migration is a
   # superset of the plain run), so this step only needs the Go toolchain.
   - name: unit-tests
-    image: golang:1.26.5-bookworm
+    image: dhi.io/golang:1.27.1-debian13-dev@sha256:e2e776afd69ca84181107b77325df3debb5e81f5386c6c4c4b0f5ab6681d8175
     environment:
       CGO_ENABLED: "0"
       GOEXPERIMENT: jsonv2
@@ -23,7 +23,7 @@ steps:
       - go test $(go list ./... | grep -v 'github.com/muety/wakapi/scripts')
 
   - name: mail-tests
-    image: golang:1.26.5-bookworm
+    image: dhi.io/golang:1.27.1-debian13-dev@sha256:e2e776afd69ca84181107b77325df3debb5e81f5386c6c4c4b0f5ab6681d8175
     environment:
       CGO_ENABLED: "0"
       GOFLAGS: -mod=vendor

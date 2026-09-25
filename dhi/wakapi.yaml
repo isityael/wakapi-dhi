@@ -4,8 +4,6 @@ name: Wakapi DHI
 image: ghcr.io/isityael/wakapi-dhi
 variant: runtime
 tags:
-  - 2.17.6-yaelmoshi.2
-  - 2.17.6-yaelmoshi.2-alpine3.24
   - latest
   - latest-alpine3.24
 platforms:
@@ -17,7 +15,7 @@ vars:
   BASE_TAG: 20260611-alpine3.24
   COMMIT_SHA: 7c0df0cce3ed904e61dbe44d5c74354971dd6020
   GOLANG_REFERENCE: dhi.io/golang:1.27.1-alpine3.24-dev@sha256:8690ed7def62c94fec567dcd9803922f7c77fcfbd87f51106233c3ee2c81c705
-  WAKAPI_VERSION: 2.17.6-yaelmoshi.2
+  WAKAPI_VERSION: 2.18.0
 contents:
   builds:
     - name: wakapi
@@ -48,6 +46,8 @@ contents:
         - name: build wakapi
           runs: |
             set -eux -o pipefail
+            # Releases set WAKAPI_VERSION to the full tag version (e.g. 2.18.0-yael.3).
+            printf '%s\n' '${WAKAPI_VERSION}' > version.txt
             CGO_ENABLED=0 GOFLAGS=-mod=vendor GOEXPERIMENT=jsonv2 go build -trimpath -ldflags "-s -w" -o "${target.dir}/app/wakapi" .
         - name: build healthcheck
           runs: |
