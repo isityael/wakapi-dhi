@@ -41,9 +41,9 @@ fi
 
 cleanup() {
     # kill_wakapi has usually already sent SIGTERM, so the process can exit
-    # between the ps check and this kill. Under errexit that lost race used to
+    # between the liveness check and this kill. Under errexit that lost race used to
     # fail an otherwise green run, and "$pid" is unset if we exit before start.
-    if [ -n "${pid-}" ] && ps -p "$pid" > /dev/null; then
+    if [ -n "${pid-}" ] && kill -0 "$pid" 2> /dev/null; then
         kill -TERM "$pid" 2> /dev/null || true
     fi
     if [ "${docker_down-0}" -eq 1 ]; then
