@@ -22,9 +22,11 @@ func NewLRU[K comparable, V any](capacity int) *LRU[K, V] {
 		panic("cache capacity must be positive")
 	}
 
+	// capacity is an upper bound, not a size hint: preallocating would reserve
+	// the full map up front (~850 MiB for the 1<<24 static-file cache).
 	return &LRU[K, V]{
 		capacity: capacity,
-		entries:  make(map[K]*list.Element, capacity),
+		entries:  make(map[K]*list.Element),
 		order:    list.New(),
 	}
 }
