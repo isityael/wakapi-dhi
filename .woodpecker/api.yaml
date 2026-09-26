@@ -6,16 +6,6 @@ when:
   - event: push
     branch: master
 
-# The workspace is on NFS, where writing vendor/ one file at a time made
-# `git reset --hard` take ~55s. Parallel checkout overlaps those writes.
-clone:
-  - name: clone
-    image: woodpeckerci/plugin-git:2.10.1@sha256:550075c844fcec0af41d9d28f9860aa5d8c43e1e9419be4b9266dc02c2f29804
-    environment:
-      GIT_CONFIG_COUNT: "1"
-      GIT_CONFIG_KEY_0: checkout.workers
-      GIT_CONFIG_VALUE_0: "16"
-
 steps:
   # The last published image is what production runs, so the upgrade test
   # starts from it instead of upstream's GitHub release.
@@ -38,8 +28,14 @@ steps:
       WAKAPI_TEST_PREVIOUS_BINARY: previous/app/wakapi
     commands:
       - apk add --no-cache bash curl sqlite postgresql-client nodejs npm
-      - npm install -g @usebruno/cli@2.15.0
-      - ./testing/run_api_tests.sh postgres --migration
+      # The Bruno install (~55s) and the Go build (~90s) are independent, so
+      # they overlap; both suites then reuse the prebuilt ./wakapi.
+      - |
+        npm install -g @usebruno/cli@2.15.0 > /tmp/bruno-install.log 2>&1 &
+        bruno_pid=$$!
+        go build -o wakapi
+        if ! wait "$${bruno_pid}"; then cat /tmp/bruno-install.log; exit 1; fi
+      - WAKAPI_TEST_SKIP_BUILD=1 ./testing/run_api_tests.sh postgres --migration
       - WAKAPI_TEST_SKIP_BUILD=1 ./testing/run_api_tests.sh sqlite
     backend_options:
       kubernetes:
