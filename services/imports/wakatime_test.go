@@ -58,7 +58,7 @@ func (suite *WakatimeImporterTestSuite) TestCheckUrl() {
 		{
 			name:      "not on whitelist - denied",
 			whitelist: []string{"wakatime.com"},
-			url:       "https://evil.com/api/v1",
+			url:       "https://example.com/api/v1",
 			wantErr:   true,
 			errText:   "not allowed",
 		},

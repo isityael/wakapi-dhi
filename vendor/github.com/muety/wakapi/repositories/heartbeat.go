@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/duke-git/lancet/v2/condition"
@@ -85,6 +86,43 @@ func (r *HeartbeatRepository) StreamWithin(from, to time.Time, user *models.User
 	return out, nil
 }
 
+func (r *HeartbeatRepository) StreamWithinExcludingHeartbeats(from, to time.Time, user *models.User, exclusions []models.HeartbeatExclusionFilter) (chan *models.Heartbeat, error) {
+	out := make(chan *models.Heartbeat)
+
+	q := r.buildTimeFilteredQuery(user.ID, from.Local(), to.Local())
+	for _, exclusion := range exclusions {
+		// only attributes which are actually set (non-zero) are included, e.g. a filter with only type set ignores category
+		var conditions []string
+		var args []any
+
+		// deliberately didn't specify additional indexes for type and category, because only applied on top of user + time-filtered queries, where a "full scan" is acceptable
+		if exclusion.Type != "" {
+			conditions = append(conditions, "type != ?")
+			args = append(args, exclusion.Type)
+		}
+		if exclusion.Category != "" {
+			conditions = append(conditions, "category != ?")
+			args = append(args, exclusion.Category)
+		}
+
+		if len(conditions) > 0 {
+			// we use OR instead of AND here, since `NOT (type = 'app' AND category = 'ai coding')` is semantically the same as `type != 'app' OR category != 'ai coding'`
+			// see https://en.wikipedia.org/wiki/De_Morgan%27s_laws#Negation_of_a_conjunction
+			q = q.Where(strings.Join(conditions, " OR "), args...)
+		}
+	}
+
+	rows, err := q.Rows()
+	if err != nil {
+		return nil, err
+	}
+
+	go streamRows[models.Heartbeat](rows, out, r.db, func(err error) {
+		conf.Log().Error("failed to scan heartbeats row", "user", user.ID, "from", from, "to", to, "error", err)
+	})
+	return out, nil
+}
+
 func (r *HeartbeatRepository) StreamWithinBatched(from, to time.Time, user *models.User, batchSize int) (chan []*models.Heartbeat, error) {
 	out := make(chan []*models.Heartbeat)
 
@@ -95,6 +133,22 @@ func (r *HeartbeatRepository) StreamWithinBatched(from, to time.Time, user *mode
 
 	go streamRowsBatched[models.Heartbeat](rows, out, r.db, batchSize, func(err error) {
 		conf.Log().Error("failed to scan heartbeats row", "user", user.ID, "from", from, "to", to, "error", err)
+	})
+	return out, nil
+}
+
+func (r *HeartbeatRepository) StreamByUserBatched(user *models.User, batchSize int) (chan []*models.Heartbeat, error) {
+	out := make(chan []*models.Heartbeat)
+
+	q := r.db.Model(&models.Heartbeat{}).Where(&models.Heartbeat{UserID: user.ID})
+	q = r.queryAddTimeSorting(q, false)
+	rows, err := q.Rows()
+	if err != nil {
+		return nil, err
+	}
+
+	go streamRowsBatched[models.Heartbeat](rows, out, r.db, batchSize, func(err error) {
+		conf.Log().Error("failed to scan heartbeats row", "user", user.ID, "error", err)
 	})
 	return out, nil
 }
@@ -301,10 +355,10 @@ func (r *HeartbeatRepository) GetUserAgentsByUser(user *models.User) ([]*models.
 	var results []*models.UserAgent
 	if err := r.db.
 		Model(&models.Heartbeat{}).
-		Select("user_agent as value, operating_system as os, editor, min(time) as first_seen, max(time) as last_seen").
+		Select("user_agent as value, operating_system as os, editor, ai_model, min(time) as first_seen, max(time) as last_seen").
 		Where(&models.Heartbeat{UserID: user.ID}).
 		Not("user_agent = ''").
-		Group("user_agent, operating_system, editor").
+		Group("user_agent, operating_system, editor, ai_model").
 		Find(&results).Error; err != nil {
 		return nil, err
 	}

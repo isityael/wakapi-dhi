@@ -50,6 +50,9 @@ sentry:
 
 mail:
   enabled: false
+  # Keep the API suite hermetic: the sign-up/e-mail tests must not depend on
+  # live MX records for wakapi.dev / example.org or on the runner's resolver.
+  skip_verify_mx_record: true
   provider: smtp
   sender: Wakapi <noreply@wakapi.dev>
 

@@ -101,13 +101,36 @@ func (r *SummaryRepository) Insert(summary *models.Summary) error {
 	return nil
 }
 
+func (r *SummaryRepository) GetByUser(user *models.User) ([]*models.Summary, error) {
+	var summaries []*models.Summary
+
+	queryConditions := []clause.Interface{
+		clause.Where{Exprs: r.db.Statement.BuildCondition("user_id = ?", user.ID)},
+	}
+
+	q := r.db.Model(&models.Summary{}).Order("from_time asc")
+	for _, c := range queryConditions {
+		q.Statement.AddClause(c)
+	}
+
+	if err := q.Find(&summaries).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.populateItems(summaries, queryConditions); err != nil {
+		return nil, err
+	}
+
+	return summaries, nil
+}
+
 func (r *SummaryRepository) GetByUserWithin(user *models.User, from, to time.Time) ([]*models.Summary, error) {
 	var summaries []*models.Summary
 
 	queryConditions := []clause.Interface{
 		clause.Where{Exprs: r.db.Statement.BuildCondition("user_id = ?", user.ID)},
-		clause.Where{Exprs: r.db.Statement.BuildCondition("from_time >= ?", from.Local())},
-		clause.Where{Exprs: r.db.Statement.BuildCondition("to_time <= ?", to.Local())},
+		clause.Where{Exprs: r.db.Statement.BuildCondition("from_time >= ?", models.CustomTime(from.Local()))},
+		clause.Where{Exprs: r.db.Statement.BuildCondition("to_time <= ?", models.CustomTime(to.Local()))},
 	}
 
 	q := r.db.Model(&models.Summary{}).
@@ -168,7 +191,7 @@ func (r *SummaryRepository) DeleteByUser(userId string) error {
 func (r *SummaryRepository) DeleteByUserBefore(userId string, t time.Time) error {
 	if err := r.db.
 		Where("user_id = ?", userId).
-		Where("to_time <= ?", t.Local()).
+		Where("to_time <= ?", models.CustomTime(t.Local())).
 		Delete(models.Summary{}).Error; err != nil {
 		return err
 	}
@@ -178,7 +201,7 @@ func (r *SummaryRepository) DeleteByUserBefore(userId string, t time.Time) error
 func (r *SummaryRepository) DeleteByUserAfter(userId string, t time.Time) error {
 	if err := r.db.
 		Where("user_id = ?", userId).
-		Where("to_time >= ?", t.Local()).
+		Where("to_time >= ?", models.CustomTime(t.Local())).
 		Delete(models.Summary{}).Error; err != nil {
 		return err
 	}

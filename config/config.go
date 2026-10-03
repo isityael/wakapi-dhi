@@ -18,9 +18,9 @@ import (
 	"encoding/gob"
 	"log/slog"
 	"net/url"
+	"uuid"
 
 	"github.com/go-webauthn/webauthn/webauthn"
-	"github.com/gofrs/uuid/v5"
 	"github.com/gorilla/securecookie"
 	"github.com/muety/wakapi/data"
 	"github.com/muety/wakapi/utils"
@@ -535,15 +535,7 @@ func IsDev(env string) bool {
 }
 
 func readColors() map[string]map[string]string {
-	// Read language colors
-	// Source:
-	// - https://raw.githubusercontent.com/ozh/github-colors/master/colors.json
-	// - https://wakatime.com/colors/operating_systems
-	// - https://wakatime.com/colors/editors
-	// Extracted from Wakatime website with XPath (see below) and did a bit of regex magic after.
-	// - $x('//span[@class="editor-icon tip"]/@data-original-title').map(e => e.nodeValue)
-	// - $x('//span[@class="editor-icon tip"]/div[1]/text()').map(e => e.nodeValue)
-
+	// see scripts/convert_colors.py
 	raw := data.ColorsFile
 	if IsDev(env) {
 		if _, err := os.Stat(colorsFile); err == nil {
@@ -561,7 +553,7 @@ func readColors() map[string]map[string]string {
 	return colors
 }
 
-func resolveDbDialect(dbType string) string {
+func ResolveDbDialect(dbType string) string {
 	if dbType == "cockroach" {
 		return "postgres"
 	}
@@ -579,6 +571,9 @@ func Set(config *Config) {
 }
 
 func Get() *Config {
+	if cfg == nil {
+		cfg = Empty()
+	}
 	return cfg
 }
 
@@ -601,9 +596,9 @@ func Load(configFlag string, version string) *Config {
 		config.Version = "v" + config.Version
 	}
 
-	config.InstanceId = uuid.Must(uuid.NewV4()).String()
+	config.InstanceId = uuid.NewV4().String()
 	config.App.Colors = readColors()
-	config.Db.Dialect = resolveDbDialect(config.Db.Type)
+	config.Db.Dialect = ResolveDbDialect(config.Db.Type)
 	if config.Db.Type == "cockroach" {
 		slog.Warn("cockroach is not officially supported, it is strongly recommended to migrate to postgres instead")
 	}
@@ -760,6 +755,12 @@ func BeginningOfWakatime() time.Time {
 
 func initOpenIDConnect(config *Config) {
 	// openid connect
+	for i := range config.Security.OidcProviders {
+		if name := strings.ToLower(config.Security.OidcProviders[i].Name); name != config.Security.OidcProviders[i].Name {
+			slog.Warn("oidc provider name is not lowercase, normalizing it", "provider", config.Security.OidcProviders[i].Name, "normalized", name)
+			config.Security.OidcProviders[i].Name = name
+		}
+	}
 	for _, c := range config.Security.OidcProviders {
 		RegisterOidcProvider(&c)
 		slog.Info("registered openid connect provider", "provider", c.Name)

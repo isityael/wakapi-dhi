@@ -97,6 +97,14 @@ func (m *HeartbeatRepositoryMock) StreamWithin(from, to time.Time, user *models.
 	return nil, args.Error(1)
 }
 
+func (m *HeartbeatRepositoryMock) StreamWithinExcludingHeartbeats(from, to time.Time, user *models.User, exclusions []models.HeartbeatExclusionFilter) (chan *models.Heartbeat, error) {
+	args := m.Called(from, to, user, exclusions)
+	if args.Get(0) != nil {
+		return args.Get(0).(chan *models.Heartbeat), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func (m *HeartbeatRepositoryMock) StreamWithinByFilters(from, to time.Time, user *models.User, filters map[string][]string) (chan *models.Heartbeat, error) {
 	args := m.Called(from, to, user, filters)
 	if args.Get(0) != nil {
@@ -107,6 +115,14 @@ func (m *HeartbeatRepositoryMock) StreamWithinByFilters(from, to time.Time, user
 
 func (m *HeartbeatRepositoryMock) StreamWithinBatched(from, to time.Time, user *models.User, batchSize int) (chan []*models.Heartbeat, error) {
 	args := m.Called(from, to, user, batchSize)
+	if args.Get(0) != nil {
+		return args.Get(0).(chan []*models.Heartbeat), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *HeartbeatRepositoryMock) StreamByUserBatched(user *models.User, batchSize int) (chan []*models.Heartbeat, error) {
+	args := m.Called(user, batchSize)
 	if args.Get(0) != nil {
 		return args.Get(0).(chan []*models.Heartbeat), args.Error(1)
 	}

@@ -1,6 +1,9 @@
 package cache
 
-import "testing"
+import (
+	"runtime"
+	"testing"
+)
 
 func TestLRUCacheEvictsLeastRecentlyUsedEntry(t *testing.T) {
 	cache := NewLRU[string, int](2)
@@ -38,5 +41,20 @@ func TestLRUCacheRemoveAndContains(t *testing.T) {
 	}
 	if _, ok := cache.Get("key"); ok {
 		t.Fatal("expected removed key lookup to miss")
+	}
+}
+
+func TestLRUCacheDoesNotPreallocateCapacity(t *testing.T) {
+	// fs.NewExistsFS uses a 1<<24 capacity; preallocating it cost ~850 MiB at
+	// startup and OOM-killed the pod under a 1 GiB limit.
+	var before, after runtime.MemStats
+	runtime.GC()
+	runtime.ReadMemStats(&before)
+	cache := NewLRU[string, bool](1 << 24)
+	runtime.ReadMemStats(&after)
+	runtime.KeepAlive(cache)
+
+	if grown := after.TotalAlloc - before.TotalAlloc; grown > 1<<20 {
+		t.Fatalf("expected constructing a large-capacity cache to stay under 1 MiB, allocated %d bytes", grown)
 	}
 }

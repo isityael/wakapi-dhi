@@ -2,13 +2,13 @@
 # Builds, scans, signs, and promotes ghcr.io/isityael/wakapi-dhi releases.
 when:
   - event: tag
-    ref: refs/tags/v*-ym.*
+    ref: refs/tags/v*-yael.*
 
 steps:
   - name: prepare-release-definition
     image: docker.io/library/busybox:1.37.0-musl@sha256:fc6dddc4c44b1bfe37f41cae8e67d1693828e8f42a91862816d7953e2c9d3f23
     commands:
-      - .ci/prepare-dhi-release-definition.sh dhi/wakapi.yaml .ci/wakapi-release.yaml "$${CI_COMMIT_SHA}"
+      - .ci/prepare-dhi-release-definition.sh dhi/wakapi.yaml .ci/wakapi-release.yaml "$${CI_COMMIT_SHA}" "$${CI_COMMIT_TAG#v}"
 
   - name: build-and-push-ghcr
     image: woodpeckerci/plugin-docker-buildx:6.0.4@sha256:765ebfaa6f71383197babb2352c7902bafe141e6232a62cafb740510a788c550
@@ -72,12 +72,13 @@ steps:
       - short_sha="$$(printf '%s' "$${CI_COMMIT_SHA}" | cut -c1-8)"
       - WAKAPI_VERSION="$$(sed -n 's/^[[:space:]]*WAKAPI_VERSION:[[:space:]]*//p' dhi/wakapi.yaml | head -n 1)"
       - test -n "$${WAKAPI_VERSION}"
-      - crane copy "$${candidate}" "ghcr.io/isityael/wakapi-dhi:${CI_COMMIT_TAG}"
+      - release="$${CI_COMMIT_TAG#v}"
+      - case "$${release}" in "$${WAKAPI_VERSION}-yael."*) ;; *) echo "tag $${CI_COMMIT_TAG} does not match WAKAPI_VERSION $${WAKAPI_VERSION}" >&2; exit 1;; esac
+      - crane copy "$${candidate}" "ghcr.io/isityael/wakapi-dhi:$${release}"
       - |
         for alias in \
           "$${short_sha}" \
-          "$${WAKAPI_VERSION}" \
-          "$${WAKAPI_VERSION}-alpine3.24" \
+          "$${release}-alpine3.24" \
           latest \
           latest-alpine3.24
         do

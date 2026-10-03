@@ -8,7 +8,7 @@ prepare_definition="${repo_root}/.ci/prepare-dhi-release-definition.sh"
 gomod="${repo_root}/go.mod"
 pipeline="${repo_root}/.woodpecker/build.yaml"
 ci_pipeline="${repo_root}/.woodpecker/ci.yaml"
-validate_pipeline="${repo_root}/.woodpecker/validate.yaml"
+api_pipeline="${repo_root}/.woodpecker/api.yaml"
 tag_workflow="${repo_root}/.forgejo/workflows/release-tag.yaml"
 renovate_config="${repo_root}/renovate.json"
 
@@ -56,6 +56,28 @@ if "${prepare_definition}" "${definition}" "${release_definition}" "not-a-commit
   echo "release definition preparer must reject malformed commit SHAs" >&2
   exit 1
 fi
+
+base_version="$(sed -n 's/^  WAKAPI_VERSION:[[:space:]]*//p' "${definition}")"
+[[ "${base_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+  echo "WAKAPI_VERSION must be the upstream version (e.g. 2.18.0), got '${base_version}'" >&2
+  exit 1
+}
+"${prepare_definition}" "${definition}" "${release_definition}" "${release_commit}" "${base_version}-yael.7"
+grep -Fq "  WAKAPI_VERSION: ${base_version}-yael.7" "${release_definition}" || {
+  echo "release definition must carry the full release version" >&2
+  exit 1
+}
+for bad_version in "${base_version}-yael.x" "${base_version}-ym.1" "0.0.0-yael.1"; do
+  if "${prepare_definition}" "${definition}" "${release_definition}" "${release_commit}" "${bad_version}" 2>/dev/null; then
+    echo "release definition preparer must reject version ${bad_version}" >&2
+    exit 1
+  fi
+done
+
+grep -Fq "printf '%s\\n' '\${WAKAPI_VERSION}' > version.txt" "${definition}" || {
+  echo "release build must stamp version.txt with the release version" >&2
+  exit 1
+}
 
 ambiguous_definition="${release_fixture}/ambiguous.yaml"
 cp "${definition}" "${ambiguous_definition}"
@@ -121,14 +143,21 @@ grep -Eq 'WAKAPI_VERSION=.*dhi/wakapi\.yaml' "${pipeline}" || {
   exit 1
 }
 
-if grep -Fq '"2.17.4-yaelmoshi.2"' "${pipeline}"; then
-  echo "release pipeline must not hard-code a stale Wakapi alias" >&2
+if grep -Eq 'yaelmoshi|-ym[.*"]' "${pipeline}" "${tag_workflow}" "${definition}"; then
+  echo "release naming must use <upstream>-yael.<n>, not the retired yaelmoshi/-ym scheme" >&2
   exit 1
 fi
 
+grep -Fq 'series="v${version}-yael"' "${tag_workflow}" \
+  && grep -Fq 'refs/tags/v*-yael.*' "${pipeline}" || {
+  echo "release tags must be v<upstream>-yael.<n>" >&2
+  exit 1
+}
+
 grep -Fq 'event: tag' "${pipeline}" \
-  && grep -Fq 'ci/woodpecker/push/validate' "${tag_workflow}" \
-  && grep -Fq 'event: push' "${validate_pipeline}" || {
+  && grep -Fq 'ci/woodpecker/push/ci ci/woodpecker/push/api' "${tag_workflow}" \
+  && grep -Fq 'event: push' "${ci_pipeline}" \
+  && grep -Fq 'event: push' "${api_pipeline}" || {
   echo "release publication must be triggered by a success-gated Forgejo tag" >&2
   exit 1
 }
