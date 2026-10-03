@@ -3,7 +3,7 @@ module git.m0sh1.cc/isityael/wakapi-dhi
 go 1.27
 
 require (
-	github.com/alitto/pond/v2 v2.7.1
+	github.com/alitto/pond/v2 v2.7.2
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/dchest/captcha v1.1.0
