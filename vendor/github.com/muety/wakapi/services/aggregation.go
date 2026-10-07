@@ -55,7 +55,7 @@ func (srv *AggregationService) Schedule() {
 	slog.Info("scheduling summary aggregation")
 
 	if _, err := srv.queueDefault.DispatchCron(func() {
-		if err := srv.AggregateSummaries(datastructure.New[string]()); err != nil {
+		if err := srv.AggregateSummaries(datastructure.New[string](), false); err != nil {
 			config.Log().Error("failed to regenerate summaries", "error", err)
 		}
 	}, srv.config.App.GetAggregationTimeCron()); err != nil {
@@ -63,7 +63,8 @@ func (srv *AggregationService) Schedule() {
 	}
 }
 
-func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[string]) error {
+// AggregateSummaries generates summaries for the given users. If includeDurations is true, it also regenerates durations from scratch.
+func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[string], includeDurations bool) error {
 	if err := srv.lockUsers(userIds); err != nil {
 		return err
 	}
@@ -108,14 +109,20 @@ func (srv *AggregationService) AggregateSummaries(userIds datastructure.Set[stri
 		jobs := make([]*AggregationJob, 0)
 
 		wg := sync.WaitGroup{}
-		wg.Add(1)
 
-		// regenerate durations for the user
-		srv.queuedDurationWorkers.Dispatch(func() {
-			slog.Info("regenerating user durations as part of summary aggregation", "user", user.ID)
-			defer wg.Done()
-			srv.durationService.Regenerate(&u, true)
-		})
+		// regenerate durations for the user if requested
+		// generally not needed, because event listener in durations service will take care of generating new durations on a regular interval
+		if includeDurations {
+			wg.Add(1)
+			if err := srv.queuedDurationWorkers.Dispatch(func() {
+				slog.Info("regenerating user durations as part of summary aggregation", "user", user.ID)
+				defer wg.Done()
+				srv.durationService.Regenerate(&u, true)
+			}); err != nil {
+				wg.Done()
+				config.Log().Error("failed to dispatch durations generation job", "userID", u.ID, "error", err)
+			}
+		}
 
 		// generate actual summary aggregation jobs
 		for _, e := range lastUserSummaryTimes {
@@ -199,26 +206,30 @@ func (srv *AggregationService) process(job AggregationJob) {
 
 func generateUserJobs(user *models.User, from time.Time) (jobs []*AggregationJob) {
 	var to time.Time
+	tz := time.Local
+	if user != nil {
+		tz = user.TZ()
+	}
 
 	// Go to next day of either user's first heartbeat or latest aggregation
-	from = from.Add(-1 * time.Second)
+	from = from.In(tz).Add(-1 * time.Second)
 	from = time.Date(
 		from.Year(),
 		from.Month(),
 		from.Day()+aggregateIntervalDays,
 		0, 0, 0, 0,
-		from.Location(),
+		tz,
 	)
 
 	// Iteratively aggregate per-day summaries until end of yesterday is reached
-	end := getStartOfToday().Add(-1 * time.Second)
+	end := getStartOfToday(tz).Add(-1 * time.Second)
 	for from.Before(end) && to.Before(end) {
 		to = time.Date(
 			from.Year(),
 			from.Month(),
 			from.Day()+aggregateIntervalDays,
 			0, 0, 0, 0,
-			from.Location(),
+			tz,
 		)
 		jobs = append(jobs, &AggregationJob{user, from, to})
 		from = to
@@ -247,7 +258,7 @@ func (srv *AggregationService) unlockUsers(userIds datastructure.Set[string]) {
 	}
 }
 
-func getStartOfToday() time.Time {
-	now := time.Now()
-	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 1, now.Location())
+func getStartOfToday(tz *time.Location) time.Time {
+	now := time.Now().In(tz)
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 1, tz)
 }

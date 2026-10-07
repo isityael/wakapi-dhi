@@ -255,6 +255,9 @@ github.com/ncruces/julianday
 # github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 ## explicit; go 1.21
 github.com/oauth2-proxy/mockoidc
+# github.com/patrickmn/go-cache v2.1.0+incompatible
+## explicit
+github.com/patrickmn/go-cache
 # github.com/philhofer/fwd v1.2.0
 ## explicit; go 1.20
 github.com/philhofer/fwd

@@ -14,6 +14,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	wakatime "github.com/muety/wakapi/models/compat/wakatime/v1"
+	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/utils"
 )
 
@@ -27,9 +28,11 @@ type WakatimeDumpImporter struct {
 
 func NewWakatimeDumpImporter(apiKey string) *WakatimeDumpImporter {
 	return &WakatimeDumpImporter{
-		apiKey:     apiKey,
-		httpClient: &http.Client{Timeout: 10 * time.Second},
-		queue:      config.GetQueue(config.QueueImports),
+		apiKey: apiKey,
+		httpClient: &http.Client{Timeout: 10 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return routeutils.ValidateWakatimeUrl(req.URL.String())
+		}},
+		queue: config.GetQueue(config.QueueImports),
 	}
 }
 

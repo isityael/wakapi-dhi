@@ -1,19 +1,21 @@
 package services
 
 import (
+	"log/slog"
+	"time"
+
 	"github.com/duke-git/lancet/v2/slice"
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
 	"github.com/muety/wakapi/utils"
-	"log/slog"
-	"time"
 )
 
 type HousekeepingService struct {
 	config        *config.Config
 	userSrvc      IUserService
 	heartbeatSrvc IHeartbeatService
+	durationSrvc  IDurationService
 	projectSrvc   IProjectService
 	summarySrvc   ISummaryService
 	baseRepo      repositories.IBaseRepository
@@ -21,11 +23,12 @@ type HousekeepingService struct {
 	queueWorkers  *config.JobQueue
 }
 
-func NewHousekeepingService(userService IUserService, heartbeatService IHeartbeatService, projectService IProjectService, summaryService ISummaryService, baseRepository repositories.IBaseRepository) *HousekeepingService {
+func NewHousekeepingService(userService IUserService, heartbeatService IHeartbeatService, durationService IDurationService, projectService IProjectService, summaryService ISummaryService, baseRepository repositories.IBaseRepository) *HousekeepingService {
 	return &HousekeepingService{
 		config:        config.Get(),
 		userSrvc:      userService,
 		heartbeatSrvc: heartbeatService,
+		durationSrvc:  durationService,
 		projectSrvc:   projectService,
 		summarySrvc:   summaryService,
 		baseRepo:      baseRepository,
@@ -54,6 +57,11 @@ func (s *HousekeepingService) CleanUserDataBefore(user *models.User, before time
 
 	// clear old heartbeats
 	if err := s.heartbeatSrvc.DeleteByUserBefore(user, before); err != nil {
+		return err
+	}
+
+	// clear old durations
+	if err := s.durationSrvc.DeleteByUserBefore(user, before); err != nil {
 		return err
 	}
 

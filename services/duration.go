@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/models"
 	"github.com/muety/wakapi/repositories"
+	"github.com/patrickmn/go-cache"
 )
 
 const heartbeatPadding = 0 * time.Second
@@ -27,6 +29,7 @@ type DurationService struct {
 	userService            IUserService
 	languageMappingService ILanguageMappingService
 	lastUserJob            map[string]time.Time
+	dirtyFrom              *cache.Cache // earliest heartbeat per user after which no durations exist yet
 	queue                  *config.JobQueue
 	pending                datastructure.Set[string] // currently running per-user regeneration jobs
 }
@@ -39,6 +42,7 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 		userService:            userService,
 		languageMappingService: languageMappingService,
 		repository:             durationRepository,
+		dirtyFrom:              cache.New(6*time.Hour, 12*time.Hour),
 		lastUserJob:            make(map[string]time.Time),
 		queue:                  config.GetQueue(config.QueueProcessing),
 		pending:                datastructure.New[string](),
@@ -51,6 +55,18 @@ func NewDurationService(durationRepository repositories.IDurationRepository, hea
 			heartbeat := m.Fields[config.FieldPayload].(*models.Heartbeat)
 			user := heartbeat.User
 
+			// clear already existing durations if incoming heartbeat is older
+			// this is more or less the durations equivalent of what's being done on a summary level in the summary service's event receiver
+			dirtyFromKey := srv.getDirtyFromCacheKey(user.ID)
+			if dirtyFrom, ok := srv.dirtyFrom.Get(dirtyFromKey); !ok || heartbeat.Time.T().Before(dirtyFrom.(time.Time)) {
+				if err := srv.repository.DeleteByUserAfter(user, heartbeat.Time.T()); err != nil {
+					slog.Error("failed to delete durations newer than latest received heartbeat", "error", err, "user_id", user.ID, "heartbeat_id", heartbeat.ID)
+				} else {
+					srv.dirtyFrom.SetDefault(dirtyFromKey, heartbeat.Time.T())
+				}
+			}
+
+			// generate new durations every couple of hours
 			if t, ok := srv.lastUserJob[user.ID]; !ok || time.Now().Sub(t) > generateDurationsInterval {
 				srv.queue.Dispatch(func() {
 					srv.Regenerate(user, false)
@@ -149,6 +165,8 @@ func (srv *DurationService) Regenerate(user *models.User, forceAll bool) {
 		config.Log().Error("failed to persist new ephemeral durations for user", "user", user.ID, "error", err)
 		return
 	}
+
+	srv.dirtyFrom.Delete(srv.getDirtyFromCacheKey(user.ID))
 }
 
 func (srv *DurationService) RegenerateAll() {
@@ -169,6 +187,14 @@ func (srv *DurationService) RegenerateAll() {
 
 func (srv *DurationService) DeleteByUser(user *models.User) error {
 	return srv.repository.DeleteByUser(user)
+}
+
+func (srv *DurationService) DeleteByUserBefore(user *models.User, t time.Time) error {
+	return srv.repository.DeleteByUserBefore(user, t)
+}
+
+func (srv *DurationService) DeleteByUserAfter(user *models.User, t time.Time) error {
+	return srv.repository.DeleteByUserAfter(user, t)
 }
 
 func (srv *DurationService) getCached(from, to time.Time, user *models.User, filters *models.Filters) (models.Durations, error) {
@@ -228,7 +254,7 @@ func (srv *DurationService) getLive(from, to time.Time, user *models.User, inter
 		// Skip heartbeats that span across two adjacent summaries (assuming there are no more than 1 summary per day).
 		// This is relevant to prevent the time difference between generating summaries from raw heartbeats and aggregating pre-generated summaries.
 		// For the latter case, the very last heartbeat of a day won't be counted, so we don't want to count it here either
-		sameDay := datetime.BeginOfDay(d1.Time.T()) == datetime.BeginOfDay(latest.Time.T())
+		sameDay := datetime.BeginOfDay(d1.Time.T().In(user.TZ())).Equal(datetime.BeginOfDay(latest.Time.T().In(user.TZ())))
 		dur := condition.Ternary[bool, time.Duration](sameDay, d1.Time.T().Sub(latest.Time.T().Add(latest.Duration)), 0)
 		latest.Duration += condition.Ternary[bool, time.Duration](dur < heartbeatsTimeout, dur, heartbeatPadding)
 
@@ -363,4 +389,8 @@ func updateDurationEntity(d *models.Duration, h *models.Heartbeat, entityDuratio
 		d.Entity = h.Entity
 	}
 	return d
+}
+
+func (srv *DurationService) getDirtyFromCacheKey(userId string) string {
+	return fmt.Sprintf("dirty_from_%s", userId)
 }

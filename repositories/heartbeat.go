@@ -31,7 +31,7 @@ func (r *HeartbeatRepository) GetAll() ([]*models.Heartbeat, error) {
 }
 
 func (r *HeartbeatRepository) InsertBatch(heartbeats []*models.Heartbeat) error {
-	return InsertBatchChunked[*models.Heartbeat](heartbeats, &models.Heartbeat{}, r.db)
+	return InsertBatchChunked[*models.Heartbeat](heartbeats, &models.Heartbeat{}, r.db, false)
 }
 
 func (r *HeartbeatRepository) GetLatestByUser(user *models.User) (*models.Heartbeat, error) {
@@ -96,12 +96,13 @@ func (r *HeartbeatRepository) StreamWithinExcludingHeartbeats(from, to time.Time
 		var args []any
 
 		// deliberately didn't specify additional indexes for type and category, because only applied on top of user + time-filtered queries, where a "full scan" is acceptable
+		// columns are nullable and `NULL != 'x'` evaluates to NULL (not true), so coalesce to empty string to not accidentally exclude rows with NULL values
 		if exclusion.Type != "" {
-			conditions = append(conditions, "type != ?")
+			conditions = append(conditions, "COALESCE(type, '') != ?")
 			args = append(args, exclusion.Type)
 		}
 		if exclusion.Category != "" {
-			conditions = append(conditions, "category != ?")
+			conditions = append(conditions, "COALESCE(category, '') != ?")
 			args = append(args, exclusion.Category)
 		}
 

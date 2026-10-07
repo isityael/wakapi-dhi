@@ -14,8 +14,8 @@ import (
 
 type IAggregationService interface {
 	Schedule()
-	AggregateSummaries(set datastructure.Set[string]) error
-	AggregateDurations(set datastructure.Set[string]) error
+	AggregateSummaries(datastructure.Set[string], bool) error
+	AggregateDurations(datastructure.Set[string]) error
 }
 
 type IMiscService interface {
@@ -112,6 +112,8 @@ type IDurationService interface {
 	Regenerate(*models.User, bool)
 	RegenerateAll()
 	DeleteByUser(*models.User) error
+	DeleteByUserBefore(*models.User, time.Time) error
+	DeleteByUserAfter(*models.User, time.Time) error
 }
 
 type ISummaryService interface {

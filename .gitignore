@@ -25,3 +25,4 @@ scripts/mysql_to_*.yml
 *.db-shm
 *.db-wal
 *.db*.gz
+**/__pycache__

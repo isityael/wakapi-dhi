@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"uuid"
 
@@ -33,21 +34,22 @@ import (
 const criticalError = "a critical error has occurred, sorry"
 
 type SettingsHandler struct {
-	config              *conf.Config
-	userSrvc            services.IUserService
-	summarySrvc         services.ISummaryService
-	heartbeatSrvc       services.IHeartbeatService
-	durationSrvc        services.IDurationService
-	aliasSrvc           services.IAliasService
-	aggregationSrvc     services.IAggregationService
-	languageMappingSrvc services.ILanguageMappingService
-	projectLabelSrvc    services.IProjectLabelService
-	keyValueSrvc        services.IKeyValueService
-	mailSrvc            services.IMailService
-	apiKeySrvc          services.IApiKeyService
-	WebAuthnSrvc        services.IWebAuthnService
-	httpClient          *http.Client
-	aggregationLocks    map[string]bool
+	config                *conf.Config
+	userSrvc              services.IUserService
+	summarySrvc           services.ISummaryService
+	heartbeatSrvc         services.IHeartbeatService
+	durationSrvc          services.IDurationService
+	aliasSrvc             services.IAliasService
+	aggregationSrvc       services.IAggregationService
+	languageMappingSrvc   services.ILanguageMappingService
+	projectLabelSrvc      services.IProjectLabelService
+	keyValueSrvc          services.IKeyValueService
+	mailSrvc              services.IMailService
+	apiKeySrvc            services.IApiKeyService
+	WebAuthnSrvc          services.IWebAuthnService
+	httpClient            *http.Client
+	aggregationLocks      map[string]bool
+	aggregationLocksMutex sync.RWMutex
 }
 
 type action func(w http.ResponseWriter, r *http.Request) actionResult
@@ -225,6 +227,10 @@ func (h *SettingsHandler) GetWebAuthnOptions(w http.ResponseWriter, r *http.Requ
 	if h.config.IsDev() {
 		loadTemplates()
 	}
+	if h.config.Security.DisableWebAuthn {
+		routeutils.RespondJSONError(w, http.StatusForbidden, "webauthn is disabled on this server")
+		return
+	}
 	user := middlewares.GetPrincipal(r)
 	if user.AuthType != "local" {
 		routeutils.RespondJSONError(w, http.StatusBadRequest, "webauthn is only available for local users")
@@ -277,6 +283,10 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 		return actionResult{http.StatusBadRequest, "", "cannot unset email while subscription is active", nil}
 	}
 
+	oldLoc := condition.Ternary(user.Location == "", "Local", user.Location)
+	newLoc := condition.Ternary(payload.Location == "", "Local", payload.Location)
+	tzChanged := oldLoc != newLoc
+
 	user.Email = payload.Email
 	user.Location = payload.Location
 	user.StartOfWeek = payload.StartOfWeek
@@ -288,6 +298,21 @@ func (h *SettingsHandler) actionUpdateUser(w http.ResponseWriter, r *http.Reques
 			return actionResult{http.StatusBadRequest, "", "got invalid user data (email already taken?)", nil}
 		}
 		return actionResult{http.StatusInternalServerError, "", conf.ErrInternalServerError, nil}
+	}
+
+	if tzChanged { // existing summaries are aligned to the old time zone's day boundaries, so they need to be regenerated
+		if !h.tryLockAggregation(user.ID) {
+			return actionResult{http.StatusOK, "user updated successfully, please regenerate your summaries manually", "", nil}
+		}
+
+		go func(user *models.User, r *http.Request) {
+			defer h.toggleAggregationLock(user.ID, false)
+			if err := h.regenerateSummaries(user); err != nil {
+				conf.Log().Request(r).Error("failed to regenerate summaries after time zone change", "userID", user.ID, "error", err)
+			}
+		}(user, r)
+
+		return actionResult{http.StatusAccepted, "user updated successfully, your summaries are being regenerated to match your new time zone - this may take up to a couple of minutes", "", nil}
 	}
 
 	return actionResult{http.StatusOK, "user updated successfully", "", nil}
@@ -408,10 +433,6 @@ func (h *SettingsHandler) actionUpdateExcludeUnknownProjects(w http.ResponseWrit
 	user := middlewares.GetPrincipal(r)
 	defer h.userSrvc.FlushCache()
 
-	if h.isAggregationLocked(user.ID) {
-		return actionResult{http.StatusConflict, "", "summary regeneration already in progress, please wait", nil}
-	}
-
 	user.ExcludeUnknownProjects, err = strconv.ParseBool(r.PostFormValue("exclude_unknown_projects"))
 
 	if err != nil {
@@ -421,8 +442,11 @@ func (h *SettingsHandler) actionUpdateExcludeUnknownProjects(w http.ResponseWrit
 		return actionResult{http.StatusInternalServerError, "", "internal sever error", nil}
 	}
 
+	if !h.tryLockAggregation(user.ID) {
+		return actionResult{http.StatusConflict, "", "summary regeneration already in progress, please wait", nil}
+	}
+
 	go func(user *models.User, r *http.Request) {
-		h.toggleAggregationLock(user.ID, true)
 		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.regenerateSummaries(user); err != nil {
 			conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
@@ -808,12 +832,11 @@ func (h *SettingsHandler) actionRegenerateSummaries(w http.ResponseWriter, r *ht
 
 	user := middlewares.GetPrincipal(r)
 
-	if h.isAggregationLocked(user.ID) {
+	if !h.tryLockAggregation(user.ID) {
 		return actionResult{http.StatusConflict, "", "summary regeneration already in progress, please wait", nil}
 	}
 
 	go func(user *models.User, r *http.Request) {
-		h.toggleAggregationLock(user.ID, true)
 		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.regenerateSummaries(user); err != nil {
 			conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
@@ -940,7 +963,7 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 		return err
 	}
 
-	if err := h.aggregationSrvc.AggregateSummaries(datastructure.New(user.ID)); err != nil { // involves regenerating durations as well
+	if err := h.aggregationSrvc.AggregateSummaries(datastructure.New(user.ID), true); err != nil { // involves regenerating durations as well
 		conf.Log().Error("failed to regenerate summaries", "error", err)
 		return err
 	}
@@ -1242,11 +1265,25 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	return routeutils.WithSessionMessages(vm, r, w)
 }
 
+func (h *SettingsHandler) tryLockAggregation(userId string) bool {
+	h.aggregationLocksMutex.Lock()
+	defer h.aggregationLocksMutex.Unlock()
+	if h.aggregationLocks[userId] {
+		return false
+	}
+	h.aggregationLocks[userId] = true
+	return true
+}
+
 func (h *SettingsHandler) toggleAggregationLock(userId string, locked bool) {
+	h.aggregationLocksMutex.Lock()
+	defer h.aggregationLocksMutex.Unlock()
 	h.aggregationLocks[userId] = locked
 }
 
 func (h *SettingsHandler) isAggregationLocked(userId string) bool {
+	h.aggregationLocksMutex.RLock()
+	defer h.aggregationLocksMutex.RUnlock()
 	locked, _ := h.aggregationLocks[userId]
 	return locked
 }

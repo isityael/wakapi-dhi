@@ -218,8 +218,10 @@ func (r *SummaryRepository) populateItems(summaries []*models.Summary, condition
 
 	q := r.db.Model(&models.SummaryItem{}).
 		Select("summary_items.*").
-		Joins("cross join summaries").
-		Where("summary_items.summary_id = summaries.id").
+		// This was a cross join before, but til:
+		// "a Cartesian product (CROSS JOIN) combined with an equality predicate in the WHERE clause is identical to an INNER JOIN ... ON"
+		// Relevant in the context of https://github.com/muety/wakapi/issues/974.
+		Joins("inner join summaries on summary_items.summary_id = summaries.id").
 		Where("num_heartbeats > ?", 0)
 
 	for _, c := range conditions {

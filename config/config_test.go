@@ -316,6 +316,28 @@ func (suite *ConfigTestSuite) TestLoadSecretFilesOnlyReadsWakapiVariables() {
 	suite.Equal(unrelatedPath, os.Getenv("UNRELATED_FILE"))
 }
 
+func (suite *ConfigTestSuite) TestInitWebAuthnSkippedWhenDisabled() {
+	defer func() { WebAuthn = nil }()
+
+	suite.Cfg.Server.PublicUrl = "http://192.168.1.10:3000"
+	suite.Cfg.Security.DisableWebAuthn = true
+	WebAuthn = nil
+
+	suite.NotPanics(func() { InitWebAuthn(suite.Cfg) })
+	suite.Nil(WebAuthn)
+}
+
+func (suite *ConfigTestSuite) TestInitWebAuthnInitializedWhenEnabled() {
+	defer func() { WebAuthn = nil }()
+
+	suite.Cfg.Server.PublicUrl = "https://example.com"
+	suite.Cfg.Security.DisableWebAuthn = false
+	WebAuthn = nil
+
+	suite.NotPanics(func() { InitWebAuthn(suite.Cfg) })
+	suite.NotNil(WebAuthn)
+}
+
 func (suite *ConfigTestSuite) TestIsImportHostWhitelisted() {
 	testCases := []struct {
 		name      string

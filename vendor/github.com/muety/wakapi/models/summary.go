@@ -61,7 +61,7 @@ type SummaryItems []*SummaryItem
 type SummaryItem struct {
 	ID        uint64        `json:"-" gorm:"primary_key"`
 	Summary   *Summary      `json:"-" gorm:"not null; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	SummaryID uint          `json:"-" gorm:"size:32"`
+	SummaryID uint          `json:"-" gorm:"size:32;index:idx_summary_item_summary"`
 	Type      uint8         `json:"-" gorm:"index:idx_type"`
 	Key       string        `json:"key" gorm:"size:255"`
 	Total     time.Duration `json:"total" swaggertype:"primitive,integer"`

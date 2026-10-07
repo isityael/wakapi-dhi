@@ -105,8 +105,11 @@ func (j *CustomTime) Scan(value interface{}) error {
 		}
 	case time.Time:
 		t = v
-		// see https://github.com/muety/wakapi/issues/771
-		// -> "reinterpret" postgres dates (received as UTC) in local zone, assuming they had also originally been inserted as such
+		// See https://github.com/muety/wakapi/issues/771 -> "reinterpret" Postgres dates (received as UTC) in local zone, assuming they had also originally been inserted as such.
+		// To clarify: you'd expect this to be guarded by a check for whether we're actually dealing with Postgres. We used to have this, but intentionally removed it in 8143ca1 to fix the dbmigrate.go.
+		// The reason this works nonetheless is "by accident", because only for Postgres will dates actually be retrieved with a UTC timestamp.
+		// For SQLite, we'll get int64 anyway, and for MySQL, everything will be converted to local server time due to `loc=Local` in the connection string (see https://dev.mysql.com/doc/refman/8.4/en/datetime.html).
+		// Counterpart of this is in `Value()` (see below).
 		if v.Location() == time.UTC {
 			t = utils.SetZone(t, time.Local)
 		}
@@ -124,6 +127,12 @@ func (j CustomTime) Value() (driver.Value, error) {
 	t := j.T().Round(time.Millisecond)
 	if config.Get().Db.IsSQLite() {
 		return t.UnixMilli(), nil
+	}
+	if config.Get().Db.IsPostgres() {
+		// Hack: because we use `timestamp` column type (not `timestamptz` or sth.) for Postgres, time zone information will simply get stripped,
+		// i.e. only the wall clock time gets persisted (e.g. "17:00 +02:00" -> "17:00").
+		// When retrieving dates via Scan() (see above) we already have this hack in place to always interpret UTC as local tz. This is the "write" part of the hack.
+		return t.In(time.Local), nil
 	}
 	return t, nil
 }

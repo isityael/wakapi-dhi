@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/muety/wakapi/config"
 	"github.com/muety/wakapi/mocks"
 	"github.com/muety/wakapi/models"
 	"github.com/stretchr/testify/assert"
@@ -590,6 +591,191 @@ func (suite *DurationServiceTestSuite) TestDuration_Hashed() {
 	d20.AIModel = "aimodel2"
 	d20.Hashed()
 	assert.NotEqual(suite.T(), d1.GroupHash, d20.GroupHash)
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_HeartbeatCreateEvent_DeletesDurations() {
+	sut, eventBus := suite.createSut()
+	sut.lastUserJob[suite.TestUser.ID] = time.Now()
+
+	now := time.Now().Truncate(time.Second)
+	t1 := now.Add(-1 * time.Hour)
+	t2 := now.Add(-30 * time.Minute)
+	t3 := now.Add(-2 * time.Hour)
+
+	// 1. Initial heartbeat: triggers DeleteByUserAfter on cache miss and initializes dirtyFrom
+	suite.DurationRepository.On("DeleteByUserAfter", suite.TestUser, t1).Return(nil).Once()
+
+	eventBus.Publish(config.EventMessage{
+		Name: config.EventHeartbeatCreate,
+		Fields: map[string]interface{}{
+			config.FieldPayload: &models.Heartbeat{
+				User:   suite.TestUser,
+				UserID: suite.TestUser.ID,
+				Time:   models.CustomTime(t1),
+			},
+		},
+	})
+
+	assert.Eventually(suite.T(), func() bool {
+		for _, call := range suite.DurationRepository.Calls {
+			if call.Method == "DeleteByUserAfter" && call.Arguments.Get(1).(time.Time).Equal(t1) {
+				return true
+			}
+		}
+		return false
+	}, 2*time.Second, 20*time.Millisecond)
+
+	dirtyFromVal, ok := sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), t1, dirtyFromVal.(time.Time))
+
+	// 2. Subsequent heartbeat with timestamp after dirtyFrom: skips DeleteByUserAfter
+	eventBus.Publish(config.EventMessage{
+		Name: config.EventHeartbeatCreate,
+		Fields: map[string]interface{}{
+			config.FieldPayload: &models.Heartbeat{
+				User:   suite.TestUser,
+				UserID: suite.TestUser.ID,
+				Time:   models.CustomTime(t2),
+			},
+		},
+	})
+
+	time.Sleep(100 * time.Millisecond)
+	suite.DurationRepository.AssertNumberOfCalls(suite.T(), "DeleteByUserAfter", 1)
+
+	// 3. Out-of-order heartbeat with timestamp before dirtyFrom: triggers DeleteByUserAfter and updates dirtyFrom
+	suite.DurationRepository.On("DeleteByUserAfter", suite.TestUser, t3).Return(nil).Once()
+
+	eventBus.Publish(config.EventMessage{
+		Name: config.EventHeartbeatCreate,
+		Fields: map[string]interface{}{
+			config.FieldPayload: &models.Heartbeat{
+				User:   suite.TestUser,
+				UserID: suite.TestUser.ID,
+				Time:   models.CustomTime(t3),
+			},
+		},
+	})
+
+	assert.Eventually(suite.T(), func() bool {
+		for _, call := range suite.DurationRepository.Calls {
+			if call.Method == "DeleteByUserAfter" && call.Arguments.Get(1).(time.Time).Equal(t3) {
+				return true
+			}
+		}
+		return false
+	}, 2*time.Second, 20*time.Millisecond)
+
+	dirtyFromVal, ok = sut.dirtyFrom.Get("dirty_from_" + suite.TestUser.ID)
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), t3, dirtyFromVal.(time.Time))
+
+	suite.DurationRepository.AssertExpectations(suite.T())
+	_ = sut
+}
+
+func (suite *DurationServiceTestSuite) TestDurationService_Get_SameDayTimezone() {
+	// See https://github.com/muety/wakapi/issues/975
+	sut := NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService)
+
+	nyUser := &models.User{
+		ID:                   "user_ny",
+		Location:             "America/New_York",
+		HeartbeatsTimeoutSec: int(models.DefaultHeartbeatsTimeoutLegacy / time.Second),
+	}
+
+	suite.LanguageMappingService.On("ResolveByUser", nyUser.ID).Return(make(map[string]string), nil)
+
+	// In UTC: 2023-10-01 23:59:30 UTC and 2023-10-02 00:00:30 UTC span across UTC midnight (server-local).
+	// In EDT (UTC-4): 2023-10-01 19:59:30 EDT and 2023-10-01 20:00:30 EDT are on the same day (Oct 1).
+	hb1Time := time.Date(2023, 10, 1, 23, 59, 30, 0, time.UTC)
+	hb2Time := time.Date(2023, 10, 2, 0, 0, 30, 0, time.UTC)
+
+	heartbeats := []*models.Heartbeat{
+		{
+			UserID:          nyUser.ID,
+			Project:         TestProject1,
+			Language:        TestLanguageGo,
+			Editor:          TestEditorGoland,
+			OperatingSystem: TestOsLinux,
+			Machine:         TestMachine1,
+			Entity:          TestEntity1,
+			Time:            models.CustomTime(hb1Time),
+		},
+		{
+			UserID:          nyUser.ID,
+			Project:         TestProject1,
+			Language:        TestLanguageGo,
+			Editor:          TestEditorGoland,
+			OperatingSystem: TestOsLinux,
+			Machine:         TestMachine1,
+			Entity:          TestEntity1,
+			Time:            models.CustomTime(hb2Time),
+		},
+	}
+
+	from := hb1Time.Add(-1 * time.Hour)
+	to := hb2Time.Add(1 * time.Hour)
+
+	suite.HeartbeatService.
+		On("StreamAllWithinExcludingHeartbeats", from, to, nyUser, models.ExcludeFromDurations).
+		Return(streamSlice(heartbeats), nil).
+		Once()
+
+	durations, err := sut.Get(from, to, nyUser, nil, nil, true)
+	assert.NoError(suite.T(), err)
+	// because both heartbeats fall on Oct 1 in America/New_York, sameDay is true and they get merged into 1 duration
+	assert.Len(suite.T(), durations, 1)
+	assert.Equal(suite.T(), 2, durations[0].NumHeartbeats)
+	assert.Equal(suite.T(), 60*time.Second, durations[0].Duration)
+
+	// Now test heartbeats that cross America/New_York midnight (Oct 1 23:59:30 EDT = Oct 2 03:59:30 UTC, and Oct 2 00:00:30 EDT = Oct 2 04:00:30 UTC)
+	// In UTC, both are on Oct 2 (same day in server-local), in EDT, they are on different days (Oct 1 and Oct 2), so sameDay must be false!
+	hb3Time := time.Date(2023, 10, 2, 3, 59, 30, 0, time.UTC) // Oct 1 23:59:30 EDT
+	hb4Time := time.Date(2023, 10, 2, 4, 0, 30, 0, time.UTC)  // Oct 2 00:00:30 EDT
+
+	heartbeatsMidnight := []*models.Heartbeat{
+		{
+			UserID:          nyUser.ID,
+			Project:         TestProject1,
+			Language:        TestLanguageGo,
+			Editor:          TestEditorGoland,
+			OperatingSystem: TestOsLinux,
+			Machine:         TestMachine1,
+			Entity:          TestEntity1,
+			Time:            models.CustomTime(hb3Time),
+		},
+		{
+			UserID:          nyUser.ID,
+			Project:         TestProject1,
+			Language:        TestLanguageGo,
+			Editor:          TestEditorGoland,
+			OperatingSystem: TestOsLinux,
+			Machine:         TestMachine1,
+			Entity:          TestEntity1,
+			Time:            models.CustomTime(hb4Time),
+		},
+	}
+
+	from2 := hb3Time.Add(-1 * time.Hour)
+	to2 := hb4Time.Add(1 * time.Hour)
+
+	suite.HeartbeatService.On("StreamAllWithinExcludingHeartbeats", from2, to2, nyUser, models.ExcludeFromDurations).
+		Return(streamSlice(heartbeatsMidnight), nil).Once()
+
+	durationsMidnight, err := sut.Get(from2, to2, nyUser, nil, nil, true)
+	assert.NoError(suite.T(), err)
+	// because they cross midnight in America/New_York, sameDay is false, splitting them into 2 durations
+	assert.Len(suite.T(), durationsMidnight, 2)
+}
+
+func (suite *DurationServiceTestSuite) createSut() (*DurationService, *config.EventHub) {
+	originalEventBus := config.EventBus()
+	defer config.SetEventBus(originalEventBus)
+	eventBus := config.NewEventHub()
+	config.SetEventBus(eventBus)
+	return NewDurationService(suite.DurationRepository, suite.HeartbeatService, suite.UserService, suite.LanguageMappingService), eventBus
 }
 
 func filterHeartbeats(from, to time.Time, heartbeats []*models.Heartbeat) []*models.Heartbeat {
