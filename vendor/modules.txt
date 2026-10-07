@@ -44,7 +44,7 @@ github.com/emersion/go-sasl
 # github.com/emersion/go-smtp v0.25.0
 ## explicit; go 1.13
 github.com/emersion/go-smtp
-# github.com/fxamacker/cbor/v2 v2.9.4
+# github.com/fxamacker/cbor/v2 v2.9.6
 ## explicit; go 1.20
 github.com/fxamacker/cbor/v2
 # github.com/getsentry/sentry-go v0.49.0
@@ -85,7 +85,7 @@ github.com/go-jose/go-jose/v4/json
 ## explicit; go 1.26.0
 github.com/go-openapi/jsonpointer
 github.com/go-openapi/jsonpointer/jsonname
-# github.com/go-openapi/jsonreference v1.0.2
+# github.com/go-openapi/jsonreference v1.0.3
 ## explicit; go 1.26.0
 github.com/go-openapi/jsonreference
 github.com/go-openapi/jsonreference/internal
@@ -182,7 +182,7 @@ github.com/jackc/pgx/v5/pgproto3
 github.com/jackc/pgx/v5/pgtype
 github.com/jackc/pgx/v5/pgxpool
 github.com/jackc/pgx/v5/stdlib
-# github.com/jackc/puddle/v2 v2.2.2
+# github.com/jackc/puddle/v2 v2.2.3
 ## explicit; go 1.19
 github.com/jackc/puddle/v2
 github.com/jackc/puddle/v2/internal/genstack
@@ -308,7 +308,7 @@ github.com/swaggo/http-swagger/v2
 # github.com/swaggo/swag v1.16.6
 ## explicit; go 1.18
 github.com/swaggo/swag
-# github.com/tinylib/msgp v1.6.4
+# github.com/tinylib/msgp v1.6.5
 ## explicit; go 1.24
 github.com/tinylib/msgp/msgp
 # github.com/x448/float16 v0.8.4
@@ -328,7 +328,7 @@ golang.org/x/crypto/blake2b
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
-# golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba
+# golang.org/x/exp v0.0.0-20261007192929-f45ad48fbe92
 ## explicit; go 1.26.0
 golang.org/x/exp/constraints
 # golang.org/x/mod v0.41.0
@@ -369,7 +369,7 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
-# golang.org/x/tools v0.50.0
+# golang.org/x/tools v0.51.0
 ## explicit; go 1.26.0
 golang.org/x/tools/go/ast/astutil
 golang.org/x/tools/go/buildutil
