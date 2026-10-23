@@ -26,7 +26,7 @@ require (
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/samber/slog-multi v1.8.0
+	github.com/samber/slog-multi v1.9.0
 	github.com/samber/slog-sentry/v2 v2.11.0
 	github.com/stretchr/testify v1.12.1
 	github.com/stripe/stripe-go/v76 v76.25.0
