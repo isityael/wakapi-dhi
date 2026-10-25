@@ -14,8 +14,9 @@ import (
 
 type IAggregationService interface {
 	Schedule()
-	AggregateSummaries(datastructure.Set[string], bool) error
+	AggregateSummaries(datastructure.Set[string], types.DurationsRegenerationMode) error
 	AggregateDurations(datastructure.Set[string]) error
+	IsLocked(string) bool
 }
 
 type IMiscService interface {
@@ -52,9 +53,9 @@ type IHeartbeatService interface {
 	GetRangeByUser(*models.User) (*models.RangeByUser, error)
 	GetFirstByUser(*models.User) (time.Time, error)
 	GetLastByUser(*models.User) (time.Time, error)
-	GetLatestByUser(*models.User) (*models.Heartbeat, error)
+	GetLatestByUser(*models.User, bool) (*models.Heartbeat, error)
 	GetLatestByOriginAndUser(string, *models.User) (*models.Heartbeat, error)
-	GetLatestByFilters(*models.User, *models.Filters) (*models.Heartbeat, error)
+	GetLatestByFilters(*models.User, *models.Filters, bool) (*models.Heartbeat, error)
 	GetEntitySetByUser(uint8, string) ([]string, error)
 	StreamAllWithin(time.Time, time.Time, *models.User) (chan *models.Heartbeat, error)
 	StreamAllWithinRaw(time.Time, time.Time, *models.User) (chan *models.Heartbeat, error)

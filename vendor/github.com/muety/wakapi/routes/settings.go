@@ -24,6 +24,7 @@ import (
 	"github.com/muety/wakapi/helpers"
 	"github.com/muety/wakapi/middlewares"
 	"github.com/muety/wakapi/models"
+	"github.com/muety/wakapi/models/types"
 	"github.com/muety/wakapi/models/view"
 	routeutils "github.com/muety/wakapi/routes/utils"
 	"github.com/muety/wakapi/services"
@@ -93,8 +94,13 @@ func NewSettingsHandler(
 		mailSrvc:            mailService,
 		apiKeySrvc:          apiKeyService,
 		WebAuthnSrvc:        webAuthnService,
-		httpClient:          &http.Client{Timeout: 10 * time.Second},
-		aggregationLocks:    make(map[string]bool),
+		httpClient: &http.Client{
+			Timeout: 10 * time.Second,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse // forbid following redirects
+			},
+		},
+		aggregationLocks: make(map[string]bool),
 	}
 }
 
@@ -799,7 +805,16 @@ func (h *SettingsHandler) actionImportWakatime(w http.ResponseWriter, r *http.Re
 		countAfter, _ := h.heartbeatSrvc.CountByUser(user)
 		slog.Info("downloaded heartbeats for user", "count", count, "userID", user.ID, "importedCount", countAfter-countBefore)
 
-		h.regenerateSummaries(user)
+		if h.tryLockAggregation(user.ID) {
+			func(user *models.User, r *http.Request) {
+				defer h.toggleAggregationLock(user.ID, false)
+				if err := h.regenerateSummaries(user); err != nil {
+					conf.Log().Request(r).Error("failed to regenerate summaries for user", "userID", user.ID, "error", err)
+				}
+			}(user, r)
+		} else {
+			conf.Log().Request(r).Warn("summary regeneration already in progress after import", "userID", user.ID)
+		}
 
 		if !user.HasData {
 			user.HasData = true
@@ -854,8 +869,13 @@ func (h *SettingsHandler) actionClearData(w http.ResponseWriter, r *http.Request
 	user := middlewares.GetPrincipal(r)
 	slog.Info("user requested to delete all data", "userID", user.ID)
 
+	if !h.tryLockAggregation(user.ID) { // simply misuse the aggregation locking for data deletion as well
+		return actionResult{http.StatusConflict, "", "data deletion for this user is already in progress, try again later", nil}
+	}
+
 	go func(user *models.User, r *http.Request) {
 		slog.Info("deleting summaries for user", "userID", user.ID)
+		defer h.toggleAggregationLock(user.ID, false)
 		if err := h.summarySrvc.DeleteByUser(user.ID); err != nil {
 			conf.Log().Request(r).Error("failed to clear summaries", "error", err)
 		}
@@ -948,7 +968,15 @@ func (h *SettingsHandler) validateWakatimeKey(apiKey string, baseUrl string) boo
 
 	request.Header = headers
 
-	if _, err = utils.RaiseForStatus(h.httpClient.Do(request)); err != nil {
+	res, err := utils.RaiseForStatus(h.httpClient.Do(request))
+	if err != nil {
+		return false
+	}
+	defer res.Body.Close()
+
+	// as the client does not follow redirects and RaiseForStatus only raises for 4xx and 5xx, a 3xx status must be treated as an error, too
+	// e.g. wakatime may respond with a 302 as a failure indicator, see https://github.com/muety/wakapi/issues/986
+	if res.StatusCode >= 300 && res.StatusCode < 400 {
 		return false
 	}
 
@@ -963,7 +991,7 @@ func (h *SettingsHandler) regenerateSummaries(user *models.User) error {
 		return err
 	}
 
-	if err := h.aggregationSrvc.AggregateSummaries(datastructure.New(user.ID), true); err != nil { // involves regenerating durations as well
+	if err := h.aggregationSrvc.AggregateSummaries(datastructure.New(user.ID), types.DurationsRegenerationFull); err != nil { // involves regenerating durations as well
 		conf.Log().Error("failed to regenerate summaries", "error", err)
 		return err
 	}
@@ -1243,10 +1271,8 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 	}
 
 	vm := &view.SettingsViewModel{
-		SharedLoggedInViewModel: view.SharedLoggedInViewModel{
-			SharedViewModel: view.NewSharedViewModel(h.config, nil),
-			User:            user,
-		},
+		SharedViewModel:       view.NewSharedViewModel(h.config, nil),
+		User:                  user,
 		LanguageMappings:      mappings,
 		Aliases:               combinedAliases,
 		Labels:                combinedLabels,
@@ -1266,9 +1292,11 @@ func (h *SettingsHandler) buildViewModel(r *http.Request, w http.ResponseWriter,
 }
 
 func (h *SettingsHandler) tryLockAggregation(userId string) bool {
+	// note that the way this lock is currently used, it effectively only locks the (short) pre-aggregation phase of deleting user data
+	// but is otherwise superseded by the aggregation service's own locking mechanism
 	h.aggregationLocksMutex.Lock()
 	defer h.aggregationLocksMutex.Unlock()
-	if h.aggregationLocks[userId] {
+	if h.aggregationLocks[userId] || h.aggregationSrvc.IsLocked(userId) {
 		return false
 	}
 	h.aggregationLocks[userId] = true
@@ -1285,7 +1313,7 @@ func (h *SettingsHandler) isAggregationLocked(userId string) bool {
 	h.aggregationLocksMutex.RLock()
 	defer h.aggregationLocksMutex.RUnlock()
 	locked, _ := h.aggregationLocks[userId]
-	return locked
+	return locked || h.aggregationSrvc.IsLocked(userId)
 }
 
 func getVal[T any](values *map[string]interface{}, key string, fallback T) T {

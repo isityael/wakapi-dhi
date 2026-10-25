@@ -180,7 +180,7 @@ main {
 }
 
 .entity-filter-control {
-    width: 180px;
+    width: 160px;
     @apply text-foreground text-sm;
 }
 

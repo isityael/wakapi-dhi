@@ -16,8 +16,9 @@ var jobQueues map[string]*JobQueue
 var jobCounts map[string]int
 
 const (
-	QueueDefault      = "wakapi.default"
-	QueueProcessing   = "wakapi.processing"
+	QueueDefault    = "wakapi.default"
+	QueueProcessing = "wakapi.processing"
+	// currently only used for durations generation as part of summary aggregation, because the latter wait for the former and we must prevent a deadlock
 	QueueProcessing2  = "wakapi.processing_2"
 	QueueReports      = "wakapi.reports"
 	QueueMails        = "wakapi.mail"
