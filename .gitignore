@@ -26,3 +26,5 @@ scripts/mysql_to_*.yml
 *.db-wal
 *.db*.gz
 **/__pycache__
+go.work
+go.work.sum
