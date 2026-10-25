@@ -22,7 +22,7 @@ github.com/dchest/captcha
 # github.com/descope/virtualwebauthn v1.0.5
 ## explicit; go 1.25.0
 github.com/descope/virtualwebauthn
-# github.com/duke-git/lancet/v2 v2.3.9
+# github.com/duke-git/lancet/v2 v2.4.0
 ## explicit; go 1.18
 github.com/duke-git/lancet/v2/condition
 github.com/duke-git/lancet/v2/convertor
