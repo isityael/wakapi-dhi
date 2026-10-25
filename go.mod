@@ -8,7 +8,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/dchest/captcha v1.1.0
 	github.com/descope/virtualwebauthn v1.0.5
-	github.com/duke-git/lancet/v2 v2.3.9
+	github.com/duke-git/lancet/v2 v2.4.0
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
 	github.com/emersion/go-smtp v0.25.0
 	github.com/getsentry/sentry-go v0.50.0

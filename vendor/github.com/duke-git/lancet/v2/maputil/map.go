@@ -318,6 +318,10 @@ func HasKey[K comparable, V any](m map[K]V, key K) bool {
 // MapToStruct converts map to struct
 // Play: https://go.dev/play/p/7wYyVfX38Dp
 func MapToStruct(m map[string]any, structObj any) error {
+	target := reflect.ValueOf(structObj)
+	if target.Kind() != reflect.Ptr || target.IsNil() || target.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("destination must be a non-nil pointer to a struct")
+	}
 	for k, v := range m {
 		err := setStructField(structObj, k, v)
 		if err != nil {
@@ -347,6 +351,9 @@ func setStructField(structObj any, fieldName string, fieldValue any) error {
 	}
 
 	val := reflect.ValueOf(fieldValue)
+	if !val.IsValid() {
+		return fmt.Errorf("Map value type don't match struct field type")
+	}
 
 	if fieldVal.Type() != val.Type() {
 
@@ -575,9 +582,12 @@ func convertSlice(src reflect.Value, dst reflect.Value) error {
 		return fmt.Errorf("error type:%s", dst.Type().String())
 	}
 	l := src.Len()
-	target := reflect.MakeSlice(dst.Type(), l, l)
-	if dst.CanSet() {
-		dst.Set(target)
+	if dst.Kind() == reflect.Array {
+		if l > dst.Len() {
+			return fmt.Errorf("source length %d exceeds destination length %d", l, dst.Len())
+		}
+	} else if dst.CanSet() {
+		dst.Set(reflect.MakeSlice(dst.Type(), l, l))
 	}
 	for i := 0; i < l; i++ {
 		srcValue := src.Index(i)
