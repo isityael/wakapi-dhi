@@ -10,7 +10,7 @@ steps:
   # The last published image is what production runs, so the upgrade test
   # starts from it instead of upstream's GitHub release.
   - name: previous-release
-    image: dhi.io/crane:0.21.7-debian13-dev@sha256:5c8e6a602d0c668812c6645de88af5b1d69c1a1faa4b05facecd6678371f38b7
+    image: dhi.io/crane:0.22.1-debian13-dev@sha256:82b1dc28811889cba5bcab21f599349347944a11faee62dcd5cfc43b16d28838
     commands:
       - mkdir -p testing/previous
       - crane export --platform linux/amd64 git.m0sh1.cc/isityael/wakapi-dhi:latest - | tar -xf - -C testing/previous app/wakapi
@@ -49,7 +49,7 @@ steps:
 
 services:
   - name: database
-    image: postgres:18
+    image: postgres:18@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
     environment:
       POSTGRES_USER: wakapi
       POSTGRES_PASSWORD: wakapi

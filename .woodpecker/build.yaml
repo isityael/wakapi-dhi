@@ -6,7 +6,7 @@ when:
 
 steps:
   - name: prepare-release-definition
-    image: docker.io/library/busybox:1.37.0-musl@sha256:fc6dddc4c44b1bfe37f41cae8e67d1693828e8f42a91862816d7953e2c9d3f23
+    image: docker.io/library/busybox:1.38.0-musl@sha256:ea2b9914a16a4ac1981994af97b318f7c7d4db76b580c56177f08bf76f4a0be8
     commands:
       - .ci/prepare-dhi-release-definition.sh dhi/wakapi.yaml .ci/wakapi-release.yaml "$${CI_COMMIT_SHA}" "$${CI_COMMIT_TAG#v}"
 
@@ -35,7 +35,7 @@ steps:
       sbom: generator=dhi.io/scout-sbom-indexer:1
 
   - name: scan-candidate
-    image: dhi.io/trivy:0.71.2-alpine3.24-dev@sha256:111c2d07f6a936c6429f5bb551899cdd662917b754ae5effcdd45c447cb5b5ab
+    image: dhi.io/trivy:0.74.0-alpine3.24-dev@sha256:c54ed1ca6ed018ca962d95c606458f1540746ac016b98f2f33c1be794ad38b4d
     environment:
       TRIVY_USERNAME: isityael
       TRIVY_PASSWORD:
@@ -61,7 +61,7 @@ steps:
       - rm -f /tmp/cosign.key
 
   - name: promote-release
-    image: dhi.io/crane:0.21.7-debian13-dev@sha256:5c8e6a602d0c668812c6645de88af5b1d69c1a1faa4b05facecd6678371f38b7
+    image: dhi.io/crane:0.22.1-debian13-dev@sha256:82b1dc28811889cba5bcab21f599349347944a11faee62dcd5cfc43b16d28838
     environment:
       FORGEJO_USERNAME: isityael
       FORGEJO_TOKEN:
