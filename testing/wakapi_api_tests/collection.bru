@@ -22,11 +22,9 @@ vars:pre-request {
 script:pre-request {
   const moment = require('moment')
   
-  // pretend we're in Berlin, as this is also the time zone configured for the user
-  const utcOffset = moment().utcOffset(bru.getCollectionVar('TZ_OFFSET')).utcOffset()
-  bru.setVar('utcOffset', utcOffset)
-  
-  const now = moment().utcOffset(utcOffset)
+  // run_api_tests.sh exports Europe/Berlin; retain its calendar-day DST rules.
+  // TZ_OFFSET below is only the fixed offset for the May 2021 summary fixtures.
+  const now = moment()
   const startOfDay = now.clone().startOf('day')
   const endOfDay = now.clone().endOf('day')
   const endOfTomorrow = now.clone().add(1, 'd').endOf('day')
@@ -86,4 +84,5 @@ script:pre-request {
   bru.setVar('todayDateIso', startOfDay.toISOString(true))
   bru.setVar('yesterdayDate', startOfYesterday.format('YYYY-MM-DD'))
   bru.setVar('yesterdayDateIso', startOfYesterday.toISOString(true))
+  bru.setVar('yesterdayEndIso', endOfYesterday.clone().startOf('second').toISOString(true))
 }

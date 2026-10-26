@@ -27,7 +27,7 @@ tests {
       const date = new Date(bru.getVar('yesterdayDateIso'))
       expect(res.body.timezone).to.eql(bru.getCollectionVar('TZ'));
       expect(new Date(res.body.start)).to.eql(date);
-      expect(new Date(res.body.end)).to.eql(new Date(date.getTime() + 3600 * 1000 * 24 - 1000));
+      expect(new Date(res.body.end)).to.eql(new Date(bru.getVar('yesterdayEndIso')));
       expect(res.body.data.length).to.eql(2);
   });
 }
