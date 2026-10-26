@@ -29,7 +29,7 @@ done
   exit 1
 }
 
-grep -Fq 'ghcr.io/isityael/wakapi-dhi:latest' "${api}" \
+grep -Fq 'git.m0sh1.cc/isityael/wakapi-dhi:latest' "${api}" \
   && grep -Fq 'run_api_tests.sh postgres --migration' "${api}" || {
   echo "upgrade tests must start from the last published fork image on Postgres" >&2
   exit 1
