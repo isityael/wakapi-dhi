@@ -11,7 +11,7 @@ steps:
       - .ci/prepare-dhi-release-definition.sh dhi/wakapi.yaml .ci/wakapi-release.yaml "$${CI_COMMIT_SHA}" "$${CI_COMMIT_TAG#v}"
 
   - name: build-and-push-forgejo
-    image: woodpeckerci/plugin-docker-buildx:6.0.4@sha256:765ebfaa6f71383197babb2352c7902bafe141e6232a62cafb740510a788c550
+    image: woodpeckerci/plugin-docker-buildx:6.1.2@sha256:d26b69cbe748b8a219c707e7889d5ffb3f9214bc3c480c30fe857ff85954267c
     privileged: true
     settings:
       registry: git.m0sh1.cc
