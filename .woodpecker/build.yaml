@@ -1,5 +1,5 @@
 # Wakapi — DHI-hardened fork
-# Builds, scans, signs, and promotes ghcr.io/isityael/wakapi-dhi releases.
+# Builds, scans, signs, and promotes git.m0sh1.cc/isityael/wakapi-dhi releases.
 when:
   - event: tag
     ref: refs/tags/v*-yael.*
@@ -10,22 +10,22 @@ steps:
     commands:
       - .ci/prepare-dhi-release-definition.sh dhi/wakapi.yaml .ci/wakapi-release.yaml "$${CI_COMMIT_SHA}" "$${CI_COMMIT_TAG#v}"
 
-  - name: build-and-push-ghcr
+  - name: build-and-push-forgejo
     image: woodpeckerci/plugin-docker-buildx:6.0.4@sha256:765ebfaa6f71383197babb2352c7902bafe141e6232a62cafb740510a788c550
     privileged: true
     settings:
-      registry: ghcr.io
-      repo: ghcr.io/isityael/wakapi-dhi
+      registry: git.m0sh1.cc
+      repo: git.m0sh1.cc/isityael/wakapi-dhi
       dockerfile: .ci/wakapi-release.yaml
       platforms: linux/amd64
       tags:
         - "candidate-${CI_COMMIT_SHA}"
-      cache_from: 'type=registry\,ref=ghcr.io/isityael/wakapi-dhi:buildcache'
+      cache_from: 'type=registry\,ref=git.m0sh1.cc/isityael/wakapi-dhi:buildcache'
       logins:
-        - registry: ghcr.io
+        - registry: git.m0sh1.cc
           username: isityael
           password:
-            from_secret: github_token
+            from_secret: forgejo_public_package_token
         - registry: dhi.io
           username:
             from_secret: dhi_username
@@ -39,9 +39,9 @@ steps:
     environment:
       TRIVY_USERNAME: isityael
       TRIVY_PASSWORD:
-        from_secret: github_token
+        from_secret: forgejo_public_package_token
     commands:
-      - trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed "ghcr.io/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
+      - trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed "git.m0sh1.cc/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
 
   - name: sign-candidate
     image: dhi.io/cosign:3.1.3-alpine3.24-dev@sha256:4ec09d39ad7b17288c146d929404d30ab3738976760b0422e4e1e37033be6c98
@@ -51,30 +51,30 @@ steps:
         from_secret: cosign_key
       COSIGN_PASSWORD:
         from_secret: cosign_password
-      GHCR_USERNAME: isityael
-      GHCR_TOKEN:
-        from_secret: github_token
+      FORGEJO_USERNAME: isityael
+      FORGEJO_TOKEN:
+        from_secret: forgejo_public_package_token
     commands:
       - printf '%s' "$${COSIGN_KEY}" > /tmp/cosign.key
-      - printf '%s' "$${GHCR_TOKEN}" | cosign login ghcr.io -u "$${GHCR_USERNAME}" --password-stdin
-      - cosign sign --key /tmp/cosign.key --yes --registry-referrers-mode=oci-1-1 "ghcr.io/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
+      - printf '%s' "$${FORGEJO_TOKEN}" | cosign login git.m0sh1.cc -u "$${FORGEJO_USERNAME}" --password-stdin
+      - cosign sign --key /tmp/cosign.key --yes --registry-referrers-mode=oci-1-1 "git.m0sh1.cc/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
       - rm -f /tmp/cosign.key
 
   - name: promote-release
     image: dhi.io/crane:0.21.7-debian13-dev@sha256:5c8e6a602d0c668812c6645de88af5b1d69c1a1faa4b05facecd6678371f38b7
     environment:
-      GHCR_USERNAME: isityael
-      GHCR_TOKEN:
-        from_secret: github_token
+      FORGEJO_USERNAME: isityael
+      FORGEJO_TOKEN:
+        from_secret: forgejo_public_package_token
     commands:
-      - printf '%s' "$${GHCR_TOKEN}" | crane auth login ghcr.io -u "$${GHCR_USERNAME}" --password-stdin
-      - candidate="ghcr.io/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
+      - printf '%s' "$${FORGEJO_TOKEN}" | crane auth login git.m0sh1.cc -u "$${FORGEJO_USERNAME}" --password-stdin
+      - candidate="git.m0sh1.cc/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
       - short_sha="$$(printf '%s' "$${CI_COMMIT_SHA}" | cut -c1-8)"
       - WAKAPI_VERSION="$$(sed -n 's/^[[:space:]]*WAKAPI_VERSION:[[:space:]]*//p' dhi/wakapi.yaml | head -n 1)"
       - test -n "$${WAKAPI_VERSION}"
       - release="$${CI_COMMIT_TAG#v}"
       - case "$${release}" in "$${WAKAPI_VERSION}-yael."*) ;; *) echo "tag $${CI_COMMIT_TAG} does not match WAKAPI_VERSION $${WAKAPI_VERSION}" >&2; exit 1;; esac
-      - crane copy "$${candidate}" "ghcr.io/isityael/wakapi-dhi:$${release}"
+      - crane copy "$${candidate}" "git.m0sh1.cc/isityael/wakapi-dhi:$${release}"
       - |
         for alias in \
           "$${short_sha}" \
@@ -82,5 +82,5 @@ steps:
           latest \
           latest-alpine3.24
         do
-          crane copy "$${candidate}" "ghcr.io/isityael/wakapi-dhi:$${alias}"
+          crane copy "$${candidate}" "git.m0sh1.cc/isityael/wakapi-dhi:$${alias}"
         done

@@ -13,7 +13,7 @@ steps:
     image: dhi.io/crane:0.21.7-debian13-dev@sha256:5c8e6a602d0c668812c6645de88af5b1d69c1a1faa4b05facecd6678371f38b7
     commands:
       - mkdir -p testing/previous
-      - crane export --platform linux/amd64 ghcr.io/isityael/wakapi-dhi:latest - | tar -xf - -C testing/previous app/wakapi
+      - crane export --platform linux/amd64 git.m0sh1.cc/isityael/wakapi-dhi:latest - | tar -xf - -C testing/previous app/wakapi
       - testing/previous/app/wakapi --version || true
 
   - name: api-tests
