@@ -133,7 +133,7 @@ grep -Fq 'name: sign-candidate' "${pipeline}" || {
   exit 1
 }
 
-grep -Fq 'cosign login ghcr.io' "${pipeline}" || {
+grep -Fq 'cosign login git.m0sh1.cc' "${pipeline}" || {
   echo "release pipeline must authenticate Cosign before uploading signatures" >&2
   exit 1
 }
