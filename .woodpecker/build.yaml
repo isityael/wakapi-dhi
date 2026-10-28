@@ -6,12 +6,12 @@ when:
 
 steps:
   - name: prepare-release-definition
-    image: docker.io/library/busybox:1.38.0-musl@sha256:ea2b9914a16a4ac1981994af97b318f7c7d4db76b580c56177f08bf76f4a0be8
+    image: docker.io/library/busybox:1.38.0-musl
     commands:
       - .ci/prepare-dhi-release-definition.sh dhi/wakapi.yaml .ci/wakapi-release.yaml "$${CI_COMMIT_SHA}" "$${CI_COMMIT_TAG#v}"
 
   - name: build-and-push-forgejo
-    image: woodpeckerci/plugin-docker-buildx:6.1.2@sha256:d26b69cbe748b8a219c707e7889d5ffb3f9214bc3c480c30fe857ff85954267c
+    image: woodpeckerci/plugin-docker-buildx:6.1.2
     privileged: true
     settings:
       registry: git.m0sh1.cc
@@ -35,7 +35,7 @@ steps:
       sbom: generator=dhi.io/scout-sbom-indexer:1
 
   - name: scan-candidate
-    image: dhi.io/trivy:0.74.0-alpine3.24-dev@sha256:c54ed1ca6ed018ca962d95c606458f1540746ac016b98f2f33c1be794ad38b4d
+    image: dhi.io/trivy:0.74.0-alpine3.24-dev
     environment:
       TRIVY_USERNAME: isityael
       TRIVY_PASSWORD:
@@ -44,7 +44,7 @@ steps:
       - trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed "git.m0sh1.cc/isityael/wakapi-dhi:candidate-$${CI_COMMIT_SHA}"
 
   - name: sign-candidate
-    image: dhi.io/cosign:3.1.4-alpine3.24-dev@sha256:7572c01000040cf5e7118a25580cff348e1375b3fdbbb0e78eddfa97cd6196ba
+    image: dhi.io/cosign:3.1.4-alpine3.24-dev
     environment:
       COSIGN_EXPERIMENTAL: "1"
       COSIGN_KEY:
@@ -61,7 +61,7 @@ steps:
       - rm -f /tmp/cosign.key
 
   - name: promote-release
-    image: dhi.io/crane:0.22.1-debian13-dev@sha256:82b1dc28811889cba5bcab21f599349347944a11faee62dcd5cfc43b16d28838
+    image: dhi.io/crane:0.22.1-debian13-dev
     environment:
       FORGEJO_USERNAME: isityael
       FORGEJO_TOKEN:
