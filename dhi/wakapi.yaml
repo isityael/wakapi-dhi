@@ -11,7 +11,6 @@ platforms:
 dates:
   release: "2026-09-25"
 vars:
-  BASE_DIGEST: sha256:390fea8b496568bd8e8f085ab8a1c92403d9baa047e1f82436c7874694de2c2d
   BASE_TAG: 20260611-alpine3.24
   COMMIT_SHA: 7c0df0cce3ed904e61dbe44d5c74354971dd6020
   GOLANG_REFERENCE: dhi.io/golang:1.27.3-alpine3.24-dev
