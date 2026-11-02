@@ -4,7 +4,7 @@
 
 **Goal:** Convert `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi` to a native DHI YAML image build published by Woodpecker to public GHCR, then refresh the public OCI Helm chart and infra wrapper pins.
 
-**Architecture:** The Wakapi image build source of truth moves from `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi/Dockerfile` to `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi/dhi/wakapi.yaml`. Woodpecker builds that DHI definition with `docker buildx build -f dhi/wakapi.yaml`, publishes public tags to `ghcr.io/yaelmoshi/wakapi-dhi`, then the chart in `/Users/yaelmeya/git/m0sh1.cc/helm-charts/charts/wakapi-dhi` pins the tested image digest while `/Users/yaelmeya/git/m0sh1.cc/infra/apps/user/wakapi` consumes the refreshed chart without runtime renames.
+**Architecture:** The Wakapi image build source of truth moves from `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi/Dockerfile` to `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi/dhi/wakapi.yaml`. Woodpecker builds that DHI definition with `docker buildx build -f dhi/wakapi.yaml`, publishes public tags to `git.m0sh1.cc/isityael/wakapi-dhi`, then the chart in `/Users/yaelmeya/git/m0sh1.cc/helm-charts/charts/wakapi-dhi` pins the tested image digest while `/Users/yaelmeya/git/m0sh1.cc/infra/apps/user/wakapi` consumes the refreshed chart without runtime renames.
 
 **Tech Stack:** Docker Hardened Images YAML frontend (`# syntax=dhi.io/build:2-alpine3.23`), Docker Buildx, Woodpecker CI, GHCR, Go 1.26.4, Helm OCI charts, Kubernetes security contexts.
 
@@ -40,7 +40,7 @@ Use `apply_patch` to add this file:
 # syntax=dhi.io/build:2-alpine3.23
 
 name: Wakapi DHI
-image: ghcr.io/yaelmoshi/wakapi-dhi
+image: git.m0sh1.cc/isityael/wakapi-dhi
 variant: runtime
 tags:
   - 2.17.3-yaelmoshi.2
@@ -162,11 +162,11 @@ docker buildx build . \
   -f dhi/wakapi.yaml \
   --sbom=generator=dhi.io/scout-sbom-indexer:1 \
   --provenance=1 \
-  --tag ghcr.io/yaelmoshi/wakapi-dhi:dhi-local \
+  --tag git.m0sh1.cc/isityael/wakapi-dhi:dhi-local \
   --load
 ```
 
-Expected: build succeeds and local image `ghcr.io/yaelmoshi/wakapi-dhi:dhi-local` exists.
+Expected: build succeeds and local image `git.m0sh1.cc/isityael/wakapi-dhi:dhi-local` exists.
 
 - [ ] **Step 3: If the build context copy path fails, patch the build stage**
 
@@ -187,7 +187,7 @@ docker buildx build . \
   --build-context context.tar=/tmp/wakapi-dhi-context.tar \
   --sbom=generator=dhi.io/scout-sbom-indexer:1 \
   --provenance=1 \
-  --tag ghcr.io/yaelmoshi/wakapi-dhi:dhi-local \
+  --tag git.m0sh1.cc/isityael/wakapi-dhi:dhi-local \
   --load
 ```
 
@@ -208,7 +208,7 @@ Expected: commit succeeds.
 
 **Files:**
 - Create: `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi/scripts/validate_dhi_image.sh`
-- Test: `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi/scripts/validate_dhi_image.sh ghcr.io/yaelmoshi/wakapi-dhi:dhi-local`
+- Test: `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi/scripts/validate_dhi_image.sh git.m0sh1.cc/isityael/wakapi-dhi:dhi-local`
 
 - [ ] **Step 1: Add the validation script**
 
@@ -218,7 +218,7 @@ Use `apply_patch` to add:
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
 
-image="${1:-ghcr.io/yaelmoshi/wakapi-dhi:dhi-local}"
+image="${1:-git.m0sh1.cc/isityael/wakapi-dhi:dhi-local}"
 container="wakapi-dhi-validate"
 
 cleanup() {
@@ -263,7 +263,7 @@ Expected: script is executable.
 Run:
 
 ```bash
-scripts/validate_dhi_image.sh ghcr.io/yaelmoshi/wakapi-dhi:dhi-local
+scripts/validate_dhi_image.sh git.m0sh1.cc/isityael/wakapi-dhi:dhi-local
 ```
 
 Expected: command exits `0`; `/api/health` and `/app/healthcheck` both succeed.
@@ -365,7 +365,7 @@ Use `apply_patch` to update `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi/.woodpecker
 
 ```yaml
 # Wakapi - DHI-native fork
-# Builds and pushes to ghcr.io/yaelmoshi/wakapi-dhi
+# Builds and pushes to git.m0sh1.cc/isityael/wakapi-dhi
 when:
   - event: manual
   - event: push
@@ -379,7 +379,7 @@ steps:
     privileged: true
     settings:
       registry: ghcr.io
-      repo: ghcr.io/yaelmoshi/wakapi-dhi
+      repo: git.m0sh1.cc/isityael/wakapi-dhi
       dockerfile: dhi/wakapi.yaml
       platforms: linux/amd64
       tags:
@@ -387,7 +387,7 @@ steps:
         - "2.17.3-yaelmoshi.2"
         - latest
       cache_images:
-        - ghcr.io/yaelmoshi/wakapi-dhi:buildcache
+        - git.m0sh1.cc/isityael/wakapi-dhi:buildcache
       logins:
         - registry: ghcr.io
           username: yaelmoshi
@@ -411,7 +411,7 @@ docker buildx build . \
   -f dhi/wakapi.yaml \
   --sbom=generator=dhi.io/scout-sbom-indexer:1 \
   --provenance=1 \
-  --tag ghcr.io/yaelmoshi/wakapi-dhi:2.17.3-yaelmoshi.2-local \
+  --tag git.m0sh1.cc/isityael/wakapi-dhi:2.17.3-yaelmoshi.2-local \
   --load
 ```
 
@@ -422,7 +422,7 @@ Expected: build succeeds.
 Run:
 
 ```bash
-scripts/validate_dhi_image.sh ghcr.io/yaelmoshi/wakapi-dhi:2.17.3-yaelmoshi.2-local
+scripts/validate_dhi_image.sh git.m0sh1.cc/isityael/wakapi-dhi:2.17.3-yaelmoshi.2-local
 ```
 
 Expected: command exits `0`.
@@ -510,8 +510,8 @@ Expected: a new pipeline for the pushed commit appears and reaches `success`.
 Run:
 
 ```bash
-docker buildx imagetools inspect ghcr.io/yaelmoshi/wakapi-dhi:2.17.3-yaelmoshi.2
-docker buildx imagetools inspect ghcr.io/yaelmoshi/wakapi-dhi:$(git rev-parse --short=8 HEAD)
+docker buildx imagetools inspect git.m0sh1.cc/isityael/wakapi-dhi:2.17.3-yaelmoshi.2
+docker buildx imagetools inspect git.m0sh1.cc/isityael/wakapi-dhi:$(git rev-parse --short=8 HEAD)
 ```
 
 Expected: both references exist. Record the `Digest: sha256:...` for the semantic tag.
@@ -540,7 +540,7 @@ In `/Users/yaelmeya/git/m0sh1.cc/helm-charts/charts/wakapi-dhi/Chart.yaml`, make
 Run from `/Users/yaelmeya/git/m0sh1.cc/helm-charts`:
 
 ```bash
-native_dhi_digest="$(docker buildx imagetools inspect ghcr.io/yaelmoshi/wakapi-dhi:2.17.3-yaelmoshi.2 | awk '/^Digest:/ {print $2; exit}')"
+native_dhi_digest="$(docker buildx imagetools inspect git.m0sh1.cc/isityael/wakapi-dhi:2.17.3-yaelmoshi.2 | awk '/^Digest:/ {print $2; exit}')"
 test -n "$native_dhi_digest"
 printf '%s\n' "$native_dhi_digest"
 ```
@@ -553,7 +553,7 @@ In `/Users/yaelmeya/git/m0sh1.cc/helm-charts/charts/wakapi-dhi/values.yaml`, rep
 
 ```yaml
 image:
-  repository: ghcr.io/yaelmoshi/wakapi-dhi
+  repository: git.m0sh1.cc/isityael/wakapi-dhi
   pullPolicy: IfNotPresent
   tag: "2.17.3-yaelmoshi.2@${native_dhi_digest}"
 ```
@@ -579,7 +579,7 @@ Run from `/Users/yaelmeya/git/m0sh1.cc/helm-charts`:
 ```bash
 helm lint charts/wakapi-dhi
 helm template wakapi charts/wakapi-dhi -f charts/wakapi-dhi/ci/test-values.yaml >/tmp/wakapi-dhi-chart.yaml
-rg -n "name: wakapi$|ghcr.io/yaelmoshi/wakapi-dhi|runAsNonRoot|allowPrivilegeEscalation|seccompProfile" /tmp/wakapi-dhi-chart.yaml
+rg -n "name: wakapi$|git.m0sh1.cc/isityael/wakapi-dhi|runAsNonRoot|allowPrivilegeEscalation|seccompProfile" /tmp/wakapi-dhi-chart.yaml
 git diff --check
 ```
 
@@ -603,17 +603,17 @@ Run:
 ```bash
 helm package charts/wakapi-dhi --destination /tmp
 helm registry login ghcr.io -u yaelmoshi
-helm push /tmp/wakapi-dhi-1.2.10.tgz oci://ghcr.io/yaelmoshi/charts
+helm push /tmp/wakapi-dhi-1.2.10.tgz oci://git.m0sh1.cc/isityael/charts
 ```
 
-Expected: `ghcr.io/yaelmoshi/charts/wakapi-dhi:1.2.10` is pushed successfully.
+Expected: `git.m0sh1.cc/isityael/charts/wakapi-dhi:1.2.10` is pushed successfully.
 
 - [ ] **Step 8: Verify public chart pull**
 
 Run:
 
 ```bash
-helm pull oci://ghcr.io/yaelmoshi/charts/wakapi-dhi --version 1.2.10 --destination /tmp
+helm pull oci://git.m0sh1.cc/isityael/charts/wakapi-dhi --version 1.2.10 --destination /tmp
 ```
 
 Expected: pull succeeds.
@@ -666,7 +666,7 @@ appVersion: "2.17.3-yaelmoshi.2"
 Run from `/Users/yaelmeya/git/m0sh1.cc/infra`:
 
 ```bash
-native_dhi_digest="$(docker buildx imagetools inspect ghcr.io/yaelmoshi/wakapi-dhi:2.17.3-yaelmoshi.2 | awk '/^Digest:/ {print $2; exit}')"
+native_dhi_digest="$(docker buildx imagetools inspect git.m0sh1.cc/isityael/wakapi-dhi:2.17.3-yaelmoshi.2 | awk '/^Digest:/ {print $2; exit}')"
 test -n "$native_dhi_digest"
 printf '%s\n' "$native_dhi_digest"
 ```
@@ -686,7 +686,7 @@ set:
 ```yaml
 wakapi:
   image:
-    repository: ghcr.io/yaelmoshi/wakapi-dhi
+    repository: git.m0sh1.cc/isityael/wakapi-dhi
     tag: "2.17.3-yaelmoshi.2@${native_dhi_digest}"
     pullPolicy: IfNotPresent
 ```
@@ -712,7 +712,7 @@ helm lint apps/user/wakapi
 helm template wakapi apps/user/wakapi -f apps/user/wakapi/values.yaml >/tmp/wakapi-wrapper-default.yaml
 helm template wakapi apps/user/wakapi -f apps/user/wakapi/values-root.yaml >/tmp/wakapi-wrapper-root.yaml
 helm template wakapi apps/user/wakapi -f apps/user/wakapi/values-homelab.yaml >/tmp/wakapi-wrapper-homelab.yaml
-rg -n "name: wakapi$|ghcr.io/yaelmoshi/wakapi-dhi|2.17.3-yaelmoshi.2|runAsNonRoot|seccompProfile" /tmp/wakapi-wrapper-default.yaml /tmp/wakapi-wrapper-root.yaml /tmp/wakapi-wrapper-homelab.yaml
+rg -n "name: wakapi$|git.m0sh1.cc/isityael/wakapi-dhi|2.17.3-yaelmoshi.2|runAsNonRoot|seccompProfile" /tmp/wakapi-wrapper-default.yaml /tmp/wakapi-wrapper-root.yaml /tmp/wakapi-wrapper-homelab.yaml
 git diff --check
 ```
 
@@ -762,8 +762,8 @@ Expected: Wakapi and helm-charts are clean. Infra may still show unrelated pre-e
 Run:
 
 ```bash
-docker buildx imagetools inspect ghcr.io/yaelmoshi/wakapi-dhi:2.17.3-yaelmoshi.2
-helm pull oci://ghcr.io/yaelmoshi/charts/wakapi-dhi --version 1.2.10 --destination /tmp
+docker buildx imagetools inspect git.m0sh1.cc/isityael/wakapi-dhi:2.17.3-yaelmoshi.2
+helm pull oci://git.m0sh1.cc/isityael/charts/wakapi-dhi --version 1.2.10 --destination /tmp
 ```
 
 Expected: both public pulls succeed.

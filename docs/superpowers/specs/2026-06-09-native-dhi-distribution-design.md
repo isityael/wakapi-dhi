@@ -4,8 +4,8 @@
 
 This design converts `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi` from a DHI-based Dockerfile build into a native DHI-built distribution, while keeping public distribution on GitHub Container Registry.
 
-The OCI image remains public at `ghcr.io/yaelmoshi/wakapi-dhi`.
-The OCI Helm chart remains public at `ghcr.io/yaelmoshi/charts/wakapi-dhi`.
+The OCI image remains public at `git.m0sh1.cc/isityael/wakapi-dhi`.
+The OCI Helm chart remains public at `git.m0sh1.cc/isityael/charts/wakapi-dhi`.
 The source of truth for the image build becomes a native DHI definition rather than `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi/Dockerfile`.
 
 ## Goals
@@ -42,7 +42,7 @@ The source of truth for the image build becomes a native DHI definition rather t
 - uses `dhi.io/golang:* -dev` for the build stage
 - uses `dhi.io/static:*` for the runtime stage
 - builds a static `wakapi` binary and a static healthcheck binary
-- publishes to `ghcr.io/yaelmoshi/wakapi-dhi` through Woodpecker
+- publishes to `git.m0sh1.cc/isityael/wakapi-dhi` through Woodpecker
 
 This is already hardened, but it is still Dockerfile-driven rather than native DHI-definition-driven.
 
@@ -50,8 +50,8 @@ This is already hardened, but it is still Dockerfile-driven rather than native D
 
 `/Users/yaelmeya/git/m0sh1.cc/helm-charts/charts/wakapi-dhi` currently:
 
-- publishes as an OCI chart on `ghcr.io/yaelmoshi/charts/wakapi-dhi`
-- defaults to `ghcr.io/yaelmoshi/wakapi-dhi`
+- publishes as an OCI chart on `git.m0sh1.cc/isityael/charts/wakapi-dhi`
+- defaults to `git.m0sh1.cc/isityael/wakapi-dhi`
 - supports digest-pinned images
 - already exposes security context and `imagePullSecrets`
 - defaults `nameOverride` and `fullnameOverride` to `wakapi` to preserve runtime object names
@@ -60,7 +60,7 @@ This is already hardened, but it is still Dockerfile-driven rather than native D
 
 `/Users/yaelmeya/git/m0sh1.cc/infra/apps/user/wakapi` currently:
 
-- consumes the OCI chart from `ghcr.io/yaelmoshi/charts`
+- consumes the OCI chart from `git.m0sh1.cc/isityael/charts`
 - supplies cluster-specific database, ingress, Gateway API, monitoring, and secret wiring
 - pins the application image separately from the public chart defaults
 
@@ -286,7 +286,7 @@ Proceed with option 1:
 
 - native DHI image definition in `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi`
 - Woodpecker-based publish flow in `/Users/yaelmeya/git/m0sh1.cc/wakapi-dhi/.woodpecker/build.yaml`
-- public image on `ghcr.io/yaelmoshi/wakapi-dhi`
-- public OCI chart on `ghcr.io/yaelmoshi/charts/wakapi-dhi`
+- public image on `git.m0sh1.cc/isityael/wakapi-dhi`
+- public OCI chart on `git.m0sh1.cc/isityael/charts/wakapi-dhi`
 - DHI-style hardening and documentation in `/Users/yaelmeya/git/m0sh1.cc/helm-charts/charts/wakapi-dhi`
 - no runtime rename and no `dhi.io` publication requirement
