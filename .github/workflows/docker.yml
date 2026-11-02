@@ -7,6 +7,8 @@ on:
 
 jobs:
   docker-publish:
+    # Fork releases are published by Woodpecker to Forgejo.
+    if: github.repository == 'muety/wakapi'
     name: 'Build and publish Docker image'
     runs-on: ubuntu-latest
     steps:

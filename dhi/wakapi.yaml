@@ -1,7 +1,7 @@
 # syntax=dhi.io/build:2-alpine3.24
 
 name: Wakapi DHI
-image: ghcr.io/isityael/wakapi-dhi
+image: git.m0sh1.cc/isityael/wakapi-dhi
 variant: runtime
 tags:
   - latest
