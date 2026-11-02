@@ -10,14 +10,14 @@ steps:
   # The last published image is what production runs, so the upgrade test
   # starts from it instead of upstream's GitHub release.
   - name: previous-release
-    image: dhi.io/crane:0.21.7-debian13-dev@sha256:5c8e6a602d0c668812c6645de88af5b1d69c1a1faa4b05facecd6678371f38b7
+    image: dhi.io/crane:0.22.1-debian13-dev
     commands:
       - mkdir -p testing/previous
       - crane export --platform linux/amd64 git.m0sh1.cc/isityael/wakapi-dhi:latest - | tar -xf - -C testing/previous app/wakapi
       - testing/previous/app/wakapi --version || true
 
   - name: api-tests
-    image: dhi.io/golang:1.27.3-alpine3.24-dev@sha256:2ceb813d69b9c82501323484e0c0ae612efde281f5dffce2a3d83a79a9c87304
+    image: dhi.io/golang:1.27.3-alpine3.24-dev
     environment:
       CGO_ENABLED: "0"
       GOEXPERIMENT: jsonv2
