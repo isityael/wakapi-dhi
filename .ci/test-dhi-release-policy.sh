@@ -34,7 +34,7 @@ done < <(sed -n 's/^[[:space:]]*uses:[[:space:]]*\(dhi\.io\/golang:.*\)$/\1/p' "
 
 grep -Fq '"custom.regex"' "${renovate_config}" \
   && grep -Fq '"customType": "regex"' "${renovate_config}" \
-  && grep -Fq '"managerFilePatterns": ["/^dhi\\/.*\\.ya?ml$/"]' "${renovate_config}" \
+  && tr -d '[:space:]' < "${renovate_config}" | grep -Fq '"managerFilePatterns":["/^dhi\\/.*\\.ya?ml$/"]' \
   && grep -Fq 'GOLANG_REFERENCE:' "${renovate_config}" \
   && grep -Fq 'uses:' "${renovate_config}" \
   && grep -Fq '"datasourceTemplate": "docker"' "${renovate_config}" || {
