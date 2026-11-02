@@ -5,11 +5,19 @@
     "config:best-practices",
     ":preserveSemverRanges"
   ],
-  "enabledManagers": ["woodpecker", "gomod", "dockerfile", "npm", "custom.regex"],
+  "enabledManagers": [
+    "woodpecker",
+    "gomod",
+    "dockerfile",
+    "npm",
+    "custom.regex"
+  ],
   "customManagers": [
     {
       "customType": "regex",
-      "managerFilePatterns": ["/^dhi\\/.*\\.ya?ml$/"],
+      "managerFilePatterns": [
+        "/^dhi\\/.*\\.ya?ml$/"
+      ],
       "matchStrings": [
         "GOLANG_REFERENCE:\\s*(?<depName>dhi\\.io/golang):(?<currentValue>[^@\\s]+)",
         "uses:\\s*(?<depName>dhi\\.io/golang):(?<currentValue>[^@\\s]+)"
@@ -17,34 +25,74 @@
       "datasourceTemplate": "docker"
     }
   ],
-  "postUpdateOptions": ["gomodTidy"],
+  "postUpdateOptions": [
+    "gomodTidy"
+  ],
   "packageRules": [
     {
       "description": "The upstream Wakapi module is replaced by this checkout; source updates are merged from upstream tags",
-      "matchManagers": ["gomod"],
-      "matchPackageNames": ["github.com/muety/wakapi"],
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchPackageNames": [
+        "github.com/muety/wakapi"
+      ],
       "enabled": false
     },
     {
-      "matchManagers": ["gomod"],
+      "matchManagers": [
+        "gomod"
+      ],
       "groupName": "Go dependencies",
       "automerge": true,
-      "matchUpdateTypes": ["patch", "minor"]
+      "matchUpdateTypes": [
+        "patch",
+        "minor"
+      ]
     },
     {
-      "matchManagers": ["dockerfile", "custom.regex"],
+      "matchManagers": [
+        "dockerfile",
+        "custom.regex"
+      ],
       "groupName": "Dockerfile base images",
-      "labels": ["dependencies", "docker"]
+      "labels": [
+        "dependencies",
+        "docker"
+      ]
     },
     {
-      "matchManagers": ["npm"],
+      "matchManagers": [
+        "npm"
+      ],
       "groupName": "Frontend dependencies",
-      "labels": ["dependencies", "frontend"]
+      "labels": [
+        "dependencies",
+        "frontend"
+      ]
     },
     {
       "description": "Reduce abandonment false-positives for stable or low-churn upstream dependencies",
-      "matchManagers": ["gomod"],
-      "matchPackageNames": ["github.com/cespare/xxhash/v2", "github.com/dchest/captcha", "github.com/emersion/go-sasl", "github.com/go-chi/httprate", "github.com/gorilla/schema", "github.com/gorilla/securecookie", "github.com/gorilla/sessions", "github.com/mileusna/useragent", "github.com/oauth2-proxy/mockoidc", "github.com/robfig/cron/v3", "github.com/stripe/stripe-go/v76", "github.com/swaggo/http-swagger/v2", "gorm.io/driver/mysql", "gorm.io/driver/postgres", "gopkg.in/yaml.v3"],
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchPackageNames": [
+        "github.com/cespare/xxhash/v2",
+        "github.com/dchest/captcha",
+        "github.com/emersion/go-sasl",
+        "github.com/go-chi/httprate",
+        "github.com/gorilla/schema",
+        "github.com/gorilla/securecookie",
+        "github.com/gorilla/sessions",
+        "github.com/mileusna/useragent",
+        "github.com/oauth2-proxy/mockoidc",
+        "github.com/robfig/cron/v3",
+        "github.com/stripe/stripe-go/v76",
+        "github.com/swaggo/http-swagger/v2",
+        "gorm.io/driver/mysql",
+        "gorm.io/driver/postgres",
+        "gopkg.in/yaml.v3"
+      ],
       "abandonmentThreshold": "5 years"
     },
     {
@@ -53,6 +101,17 @@
         "docker"
       ],
       "pinDigests": false
+    },
+    {
+      "description": "Do not create container digest pins or digest refreshes.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "digest",
+        "pinDigest"
+      ],
+      "enabled": false
     }
   ],
   "pinDigests": false,
