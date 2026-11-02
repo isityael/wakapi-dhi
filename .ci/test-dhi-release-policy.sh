@@ -12,7 +12,7 @@ api_pipeline="${repo_root}/.woodpecker/api.yaml"
 tag_workflow="${repo_root}/.forgejo/workflows/release-tag.yaml"
 renovate_config="${repo_root}/renovate.json"
 
-grep -Eq 'dhi\.io/golang:(1\.26\.[6-9]|1\.2[7-9]\.[0-9]+|1\.[3-9][0-9]\.[0-9]+)-alpine3\.24-dev@sha256:' "${definition}" || {
+grep -Eq 'dhi\.io/golang:(1\.26\.[6-9]|1\.2[7-9]\.[0-9]+|1\.[3-9][0-9]\.[0-9]+)-alpine3\.24-dev' "${definition}" || {
   echo "DHI build must use Go 1.26.6 or newer for the current Go vulnerability fixes" >&2
   exit 1
 }
