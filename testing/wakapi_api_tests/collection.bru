@@ -87,4 +87,5 @@ script:pre-request {
   bru.setVar('todayDateIso', startOfDay.toISOString(true))
   bru.setVar('yesterdayDate', startOfYesterday.format('YYYY-MM-DD'))
   bru.setVar('yesterdayDateIso', startOfYesterday.toISOString(true))
+  bru.setVar('yesterdayEndIso', endOfYesterday.clone().startOf('second').toISOString(true))
 }
