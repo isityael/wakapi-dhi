@@ -24,7 +24,7 @@ for retired in migration.yaml migration-sqlite.yaml validate.yaml; do
 done
 
 [[ "$(yq '.services | length' "${api}")" == "1" ]] \
-  && [[ "$(yq '.services[0].image' "${api}")" == postgres:* ]] || {
+  && [[ "$(yq '.services[0].image' "${api}")" == dhi.io/postgres:* ]] || {
   echo "the API workflow must start exactly one Postgres service (the production dialect)" >&2
   exit 1
 }
