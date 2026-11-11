@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "local>m0sh1/infra//.github/renovate/base.json",
+    "local>isityael/infra//.github/renovate/base.json",
     "config:best-practices",
     ":preserveSemverRanges"
   ],
@@ -43,7 +43,6 @@
       "matchManagers": [
         "gomod"
       ],
-      "groupName": "Go dependencies",
       "automerge": true,
       "matchUpdateTypes": [
         "patch",
@@ -55,7 +54,6 @@
         "dockerfile",
         "custom.regex"
       ],
-      "groupName": "Dockerfile base images",
       "labels": [
         "dependencies",
         "docker"
@@ -65,7 +63,6 @@
       "matchManagers": [
         "npm"
       ],
-      "groupName": "Frontend dependencies",
       "labels": [
         "dependencies",
         "frontend"
@@ -112,10 +109,42 @@
         "pinDigest"
       ],
       "enabled": false
+    },
+    {
+      "description": "One reviewed weekly dependency refresh, including majors, charts, images and tooling.",
+      "matchPackageNames": [
+        "*"
+      ],
+      "groupName": "weekly dependencies",
+      "groupSlug": "weekly-dependencies",
+      "groupSingleUpdates": true,
+      "minimumGroupSize": 1,
+      "additionalBranchPrefix": "",
+      "separateMajorMinor": false,
+      "separateMinorPatch": false,
+      "separateMultipleMajor": false,
+      "separateMultipleMinor": false,
+      "schedule": [
+        "* 0-5 * * 1"
+      ],
+      "automerge": false
     }
   ],
   "pinDigests": false,
   "ignorePresets": [
     "docker:pinDigests"
-  ]
+  ],
+  "timezone": "Europe/Berlin",
+  "schedule": [
+    "* 0-5 * * 1"
+  ],
+  "separateMajorMinor": false,
+  "separateMinorPatch": false,
+  "separateMultipleMajor": false,
+  "separateMultipleMinor": false,
+  "prConcurrentLimit": 1,
+  "automerge": false,
+  "lockFileMaintenance": {
+    "enabled": false
+  }
 }
