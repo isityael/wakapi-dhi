@@ -35,7 +35,7 @@ steps:
       sbom: generator=dhi.io/scout-sbom-indexer:1
 
   - name: scan-candidate
-    image: dhi.io/trivy:0.74.0-alpine3.24-dev
+    image: aquasec/trivy:0.76.2
     environment:
       TRIVY_USERNAME: isityael
       TRIVY_PASSWORD:
